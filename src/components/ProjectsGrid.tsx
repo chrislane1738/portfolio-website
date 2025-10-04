@@ -9,34 +9,9 @@ interface Project {
 export default function ProjectsGrid() {
   const projects: Project[] = [
     {
-      title: 'Financial Dashboard',
-      imageUrl: 'https://placehold.co/600x400/1f2937/ffffff?text=Financial+Dashboard',
-      link: '#'
-    },
-    {
-      title: 'Trading Bot',
-      imageUrl: 'https://placehold.co/600x400/374151/ffffff?text=Trading+Bot',
-      link: '#'
-    },
-    {
-      title: 'Portfolio Tracker',
-      imageUrl: 'https://placehold.co/600x400/4b5563/ffffff?text=Portfolio+Tracker',
-      link: '#'
-    },
-    {
-      title: 'Market Analysis Tool',
-      imageUrl: 'https://placehold.co/600x400/6b7280/ffffff?text=Market+Analysis',
-      link: '#'
-    },
-    {
-      title: 'Investment Calculator',
-      imageUrl: 'https://placehold.co/600x400/9ca3af/ffffff?text=Investment+Calculator',
-      link: '#'
-    },
-    {
-      title: 'Risk Assessment App',
-      imageUrl: 'https://placehold.co/600x400/d1d5db/1f2937?text=Risk+Assessment',
-      link: '#'
+      title: 'Compound Interest Calculator',
+      imageUrl: '/calculator-preview.png',
+      link: '/calculator'
     }
   ]
 
