@@ -6,11 +6,11 @@ export default function About() {
           About Me
         </h2>
         <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
-          I'm just a finance student at community college looking deeper into coding and AI. 
-          I've always been scared of trying new things; especially things where I feel like I'd 
+          I&apos;m just a finance student at community college looking deeper into coding and AI. 
+          I&apos;ve always been scared of trying new things; especially things where I feel like I&apos;d 
           sound stupid if I did try them. To overcome this, as well as an attempt to learn more 
-          about coding, I made this website (per a friend's recommendation). Please, view some 
-          projects I'm passionate about. I hope you enjoy!
+          about coding, I made this website (per a friend&apos;s recommendation). Please, view some 
+          projects I&apos;m passionate about. I hope you enjoy!
         </p>
       </div>
     </section>
