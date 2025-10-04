@@ -1,13 +1,15 @@
-import Hero from '@/components/Hero'
+import Header from '@/components/Header'
+import About from '@/components/About'
 import ProjectsGrid from '@/components/ProjectsGrid'
+import Contact from '@/components/Contact'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-900">
-      <div className="max-w-7xl mx-auto">
-        <Hero />
-        <ProjectsGrid />
-      </div>
+      <Header />
+      <About />
+      <ProjectsGrid />
+      <Contact />
     </main>
   )
 }
