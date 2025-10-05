@@ -11,6 +11,13 @@ export default function Contact() {
         >
           chrislane1738@gmail.com
         </a>
+        
+        {/* Copyright Notice */}
+        <div className="mt-8 pt-6 border-t border-gray-700">
+          <p className="text-sm text-gray-400">
+            © 2025 Chris Lane. All Rights Reserved.
+          </p>
+        </div>
       </div>
     </footer>
   )

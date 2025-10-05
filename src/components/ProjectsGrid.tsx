@@ -12,6 +12,11 @@ export default function ProjectsGrid() {
       title: 'Compound Interest Calculator',
       imageUrl: '/calculator-preview.png',
       link: '/calculator'
+    },
+    {
+      title: 'Graham Intrinsic Value Screener',
+      imageUrl: '/graham-screener-preview.png',
+      link: '/graham-screener'
     }
   ]
 
