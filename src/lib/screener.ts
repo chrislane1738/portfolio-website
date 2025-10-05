@@ -7,6 +7,7 @@ export interface ScreenedStock {
   dividendYield: number;
   eps: number;
   price: number;
+  fullFinancialData: any;
 }
 
 /**
@@ -39,7 +40,8 @@ export async function runGrahamScreener(): Promise<ScreenedStock[]> {
           marketCap,
           dividendYield,
           eps,
-          price
+          price,
+          fullFinancialData: financials
         });
         
         console.log(`✓ ${ticker} passed screening`);
@@ -137,7 +139,8 @@ export async function runGrahamScreenerSample(): Promise<ScreenedStock[]> {
           marketCap,
           dividendYield,
           eps,
-          price
+          price,
+          fullFinancialData: financials
         });
         
         console.log(`✓ ${ticker} passed screening`);
