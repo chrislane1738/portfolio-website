@@ -15,7 +15,7 @@ export default function ProjectsGrid() {
     },
     {
       title: 'Graham Intrinsic Value Screener',
-      imageUrl: '/graham-screener-preview.png',
+      imageUrl: '/benjamin-graham.jpg',
       link: '/graham-screener'
     }
   ]
