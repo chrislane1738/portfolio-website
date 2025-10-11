@@ -17,6 +17,11 @@ export default function ProjectsGrid() {
       title: 'Graham Intrinsic Value Screener',
       imageUrl: '/benjamin-graham.jpg',
       link: '/graham-screener'
+    },
+    {
+      title: 'P/E Comparative Analysis',
+      imageUrl: '/pe-analysis-placeholder.png',
+      link: '/pe-analyzer'
     }
   ]
 
