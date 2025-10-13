@@ -88,12 +88,12 @@ export function runFullAnalysis(rawData: any) {
     const medianPE = calculateMedian(filteredPeerPEs);
     
     // Filter the peer data to match the filtered P/E ratios for display
-    const filteredPeerPEsWithTickers = peerPEsWithTickers.filter(peer => 
+    const filteredPeerPEsWithTickers = peerPEsWithTickers.filter((peer: { ticker: string; pe: number }) => 
       filteredPeerPEs.includes(peer.pe)
     );
     
     // Calculate Fair P/E Estimate (average of 3 key metrics)
-    const fairPE = (currentPE + averagePE + medianPE) / 3;
+    const fairPE = Math.round(((currentPE + averagePE + medianPE) / 3) * 100) / 100;
     
     // Calculate intrinsic value and upside using Forward EPS
     const intrinsicValue = fairPE * forwardEps;
@@ -101,8 +101,8 @@ export function runFullAnalysis(rawData: any) {
     
     // Determine investment rating
     let rating = 'HOLD';
-    if (upsidePercentage > 20) rating = 'BUY';
-    else if (upsidePercentage < -20) rating = 'SELL';
+    if (upsidePercentage > 10) rating = 'BUY';
+    else if (upsidePercentage < -3) rating = 'SELL';
     
     const results = {
       targetTicker: rawData.target.ticker,

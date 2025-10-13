@@ -20,7 +20,7 @@ export default function ProjectsGrid() {
     },
     {
       title: 'P/E Comparative Analysis',
-      imageUrl: '/pe-analysis-placeholder.png',
+      imageUrl: '/pe-comparable.png',
       link: '/pe-analyzer'
     }
   ]
