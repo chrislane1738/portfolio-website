@@ -7,7 +7,7 @@ export default function CalculatorPage() {
         {/* Navigation */}
         <div className="mb-8">
           <a 
-            href="/" 
+            href="/projects" 
             className="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors duration-200"
           >
             <svg 
@@ -23,7 +23,7 @@ export default function CalculatorPage() {
                 d="M15 19l-7-7 7-7" 
               />
             </svg>
-            Back to Home
+            Back to Projects
           </a>
         </div>
 

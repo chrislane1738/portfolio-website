@@ -1,21 +1,34 @@
 export default function Contact() {
   return (
-    <footer id="contact" className="py-16 px-4 bg-gray-800">
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">
-          Contact
-        </h2>
-        <a 
-          href="mailto:chrislane1738@gmail.com"
-          className="text-xl md:text-2xl text-blue-400 hover:text-blue-300 transition-colors duration-300"
-        >
-          chrislane1738@gmail.com
-        </a>
-        
-        {/* Copyright Notice */}
-        <div className="mt-8 pt-6 border-t border-gray-700">
-          <p className="text-sm text-gray-400">
-            © 2025 Chris Lane. All Rights Reserved.
+    <footer id="contact" className="py-8 px-4 bg-gray-800">
+      <div className="max-w-4xl mx-auto">
+        <div className="space-y-3 text-left">
+          <h4 className="text-sm md:text-base font-semibold text-white">
+            Contact Me
+          </h4>
+          <p className="text-sm md:text-base text-gray-300">
+            <span className="font-semibold">Email:</span>{' '}
+            <a
+              href="mailto:chrislane1738@gmail.com"
+              className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+            >
+              chrislane1738@gmail.com
+            </a>
+          </p>
+          <p className="text-sm md:text-base text-gray-300">
+            <span className="font-semibold">LinkedIn:</span>{' '}
+            <a
+              href="https://www.linkedin.com/in/chris-lane-concord/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+            >
+              Christopher Lane
+            </a>
+          </p>
+          <p className="text-sm md:text-base text-gray-300">
+            <span className="font-semibold">Phone:</span>{' '}
+            <span>(925)-542-2284</span>
           </p>
         </div>
       </div>
