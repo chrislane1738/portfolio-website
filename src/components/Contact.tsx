@@ -1,6 +1,6 @@
 export default function Contact() {
   return (
-    <footer id="contact" className="py-8 px-4 bg-gray-800">
+    <footer id="contact" className="py-8 px-4 bg-gray-800 mt-auto">
       <div className="max-w-4xl mx-auto">
         <div className="space-y-3 text-left">
           <h4 className="text-sm md:text-base font-semibold text-white">
