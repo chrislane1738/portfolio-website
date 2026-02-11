@@ -27,7 +27,7 @@ export default function ProjectsGrid() {
     {
       title: 'Portfolio Builder Dashboard',
       imageUrl: '/Portfolio-builder.png',
-      link: 'https://build-a-portfolio-dashboard.streamlit.app/',
+      link: 'https://personalanalytics-juf6xlhx6valr7qpabuupu.streamlit.app/',
       external: true
     }
   ]
