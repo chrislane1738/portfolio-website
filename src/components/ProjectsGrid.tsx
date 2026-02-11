@@ -4,6 +4,7 @@ interface Project {
   title: string
   imageUrl: string
   link: string
+  external?: boolean
 }
 
 export default function ProjectsGrid() {
@@ -22,6 +23,12 @@ export default function ProjectsGrid() {
       title: 'P/E Comparative Analysis',
       imageUrl: '/pe-comparable.png',
       link: '/pe-analyzer'
+    },
+    {
+      title: 'Portfolio Builder Dashboard',
+      imageUrl: '/Portfolio-builder.png',
+      link: 'https://build-a-portfolio-dashboard.streamlit.app/',
+      external: true
     }
   ]
 
@@ -38,6 +45,7 @@ export default function ProjectsGrid() {
               title={project.title}
               imageUrl={project.imageUrl}
               link={project.link}
+              external={project.external}
             />
           ))}
         </div>

@@ -2,12 +2,14 @@ interface ProjectCardProps {
   title: string
   imageUrl: string
   link: string
+  external?: boolean
 }
 
-export default function ProjectCard({ title, imageUrl, link }: ProjectCardProps) {
+export default function ProjectCard({ title, imageUrl, link, external }: ProjectCardProps) {
   return (
     <a
       href={link}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="block group relative overflow-hidden rounded-lg shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl"
     >
       <div
