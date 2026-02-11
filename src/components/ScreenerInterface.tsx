@@ -13,8 +13,6 @@ interface ScreenerInterfaceProps {
 
 export default function ScreenerInterface({ initialStocks, isLoading = false, error = null }: ScreenerInterfaceProps) {
   const [selectedStock, setSelectedStock] = useState<ScreenedStock | null>(null);
-  // Use the prop directly instead of maintaining separate state
-  const stocks = initialStocks;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -22,7 +20,7 @@ export default function ScreenerInterface({ initialStocks, isLoading = false, er
         {/* Left Panel - Stock List */}
         <div className="bg-gray-900 rounded-lg border border-gray-700 p-6">
           <h3 className="text-xl font-semibold text-white mb-4">
-            Screened Stocks ({stocks.length})
+            Screened Stocks ({initialStocks.length})
           </h3>
           <p className="text-sm text-gray-400 mb-6">
             Stocks that passed Graham&apos;s screening criteria: Market Cap &gt; $1B, 
@@ -51,7 +49,7 @@ export default function ScreenerInterface({ initialStocks, isLoading = false, er
                   This could be due to API rate limits or network issues.
                 </p>
               </div>
-            ) : stocks.length === 0 ? (
+            ) : initialStocks.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-400">No stocks passed the screening criteria.</p>
                 <p className="text-sm text-gray-500 mt-2">
@@ -59,7 +57,7 @@ export default function ScreenerInterface({ initialStocks, isLoading = false, er
                 </p>
               </div>
             ) : (
-              stocks.map((stock) => (
+              initialStocks.map((stock) => (
                 <button
                   key={stock.ticker}
                   onClick={() => setSelectedStock(stock)}

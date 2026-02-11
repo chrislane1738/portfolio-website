@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getStockFinancials, getSP500Tickers } from '@/lib/api';
-
-export interface ScreenedStock {
-  ticker: string;
-  name: string;
-  marketCap: number;
-  dividendYield: number;
-  eps: number;
-  price: number;
-  // Add full financial data for calculator
-  fullFinancialData: any;
-}
+import { getStockFinancials } from '@/lib/api';
+import { ScreenedStock } from '@/lib/screener';
 
 export async function GET() {
   try {
@@ -29,7 +19,7 @@ export async function GET() {
         const financials = await getStockFinancials(ticker);
         console.log('Data received for ticker:', ticker, financials);
         
-        if (await passesGrahamScreen(financials)) {
+        if (passesGrahamScreen(financials)) {
           const marketCap = parseFloat(financials.overview.MarketCapitalization) || 0;
           const dividendYield = parseFloat(financials.overview.DividendYield) || 0;
           const eps = parseFloat(financials.overview.EPS) || 0;
@@ -75,7 +65,7 @@ export async function GET() {
  * Check if a stock passes Graham's screening criteria
  * TEMPORARILY RELAXED FOR DEBUGGING
  */
-async function passesGrahamScreen(financials: any): Promise<boolean> {
+function passesGrahamScreen(financials: any): boolean {
   try {
     // 1. Market Cap > $1 Billion (KEEPING THIS CHECK)
     const marketCap = parseFloat(financials.overview.MarketCapitalization);

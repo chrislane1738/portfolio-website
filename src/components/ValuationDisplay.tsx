@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatCurrency } from '@/lib/calculator';
 
 interface ValuationDisplayProps {
   results: {
@@ -36,15 +37,6 @@ export default function ValuationDisplay({ results }: ValuationDisplayProps) {
     setCalculatedIntrinsicValue(newIntrinsicValue);
     setCalculatedUpsidePercentage(newUpsidePercentage);
   }, [editableFairPE, results.forwardEps, results.currentPrice]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   const formatPercentage = (value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;

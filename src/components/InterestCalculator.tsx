@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import InvestmentGraph from './InvestmentGraph';
+import { formatCurrency } from '@/lib/calculator';
 
 interface CompoundInterestInputs {
   principal: number;
@@ -70,18 +71,6 @@ function calculateCompoundInterest(inputs: CompoundInterestInputs): CalculationR
     finalAmount: balance,
     graphData
   };
-}
-
-/**
- * Format currency amount to 2 decimal places with commas
- */
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
 }
 
 export default function InterestCalculator() {

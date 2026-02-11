@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatCurrency, formatPercentage, calculateGrahamValueCustom } from '@/lib/calculator';
-import { GrahamCalculation } from '@/lib/calculator';
+import { formatCurrency, formatPercentage, calculateGrahamValueCustom, calculateGrowthRate, GrahamCalculation } from '@/lib/calculator';
 
 interface CalculatorDisplayProps {
   stockData: {
@@ -203,41 +202,3 @@ export default function CalculatorDisplay({ stockData }: CalculatorDisplayProps)
   );
 }
 
-/**
- * Calculate average annual growth rate from earnings data
- */
-function calculateGrowthRate(earnings: any[]): number {
-  if (!earnings || earnings.length < 7) {
-    return 0; // Default to 0% growth if insufficient data
-  }
-  
-  try {
-    // Get the last 7 years of earnings data
-    const recentEarnings = earnings.slice(0, 7).map(earning => {
-      const eps = parseFloat(earning.reportedEPS);
-      return eps;
-    }).filter(eps => !isNaN(eps) && eps > 0);
-    
-    if (recentEarnings.length < 2) {
-      return 0;
-    }
-    
-    // Calculate compound annual growth rate (CAGR)
-    const firstEps = recentEarnings[recentEarnings.length - 1]; // Oldest
-    const lastEps = recentEarnings[0]; // Most recent
-    const years = recentEarnings.length - 1;
-    
-    if (firstEps <= 0) {
-      return 0;
-    }
-    
-    const cagr = Math.pow(lastEps / firstEps, 1 / years) - 1;
-    
-    // Convert to percentage and round to nearest whole number
-    return Math.round(cagr * 100);
-    
-  } catch (error) {
-    console.error('Error calculating growth rate:', error);
-    return 0;
-  }
-}

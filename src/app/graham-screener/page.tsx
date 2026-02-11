@@ -22,7 +22,6 @@ export default function GrahamScreenerPage() {
         }
         
         const stocks = await response.json();
-        console.log('Data received from API on the client:', stocks);
         setScreenedStocks(stocks);
       } catch (err) {
         console.error('Error fetching screened stocks:', err);

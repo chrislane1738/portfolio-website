@@ -28,7 +28,7 @@ export async function runGrahamScreener(): Promise<ScreenedStock[]> {
       const financials = await getStockFinancials(ticker);
       
       // Apply Graham screening criteria
-      if (await passesGrahamScreen(financials)) {
+      if (passesGrahamScreen(financials)) {
         const marketCap = parseFloat(financials.overview.MarketCapitalization) || 0;
         const dividendYield = parseFloat(financials.overview.DividendYield) || 0;
         const eps = parseFloat(financials.overview.EPS) || 0;
@@ -65,7 +65,7 @@ export async function runGrahamScreener(): Promise<ScreenedStock[]> {
 /**
  * Check if a stock passes Graham's screening criteria
  */
-async function passesGrahamScreen(financials: any): Promise<boolean> {
+function passesGrahamScreen(financials: any): boolean {
   try {
     // 1. Market Cap > $1 Billion
     const marketCap = parseFloat(financials.overview.MarketCapitalization);
@@ -127,7 +127,7 @@ export async function runGrahamScreenerSample(): Promise<ScreenedStock[]> {
       
       const financials = await getStockFinancials(ticker);
       
-      if (await passesGrahamScreen(financials)) {
+      if (passesGrahamScreen(financials)) {
         const marketCap = parseFloat(financials.overview.MarketCapitalization) || 0;
         const dividendYield = parseFloat(financials.overview.DividendYield) || 0;
         const eps = parseFloat(financials.overview.EPS) || 0;

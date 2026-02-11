@@ -60,7 +60,7 @@ export async function calculateGrahamValue(ticker: string, bondYield: number): P
 /**
  * Calculate average annual growth rate from earnings data
  */
-function calculateGrowthRate(earnings: any[]): number {
+export function calculateGrowthRate(earnings: any[]): number {
   if (!earnings || earnings.length < 7) {
     return 0; // Default to 0% growth if insufficient data
   }
