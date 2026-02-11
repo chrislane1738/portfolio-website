@@ -1,38 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance();
 
 export async function GET(request: NextRequest) {
   try {
-    const apiKey = process.env.FRED_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'FRED_API_KEY environment variable is required' },
-        { status: 500 }
-      );
-    }
+    // Use ^TNX (10-Year Treasury Note Yield) as bond yield proxy
+    const quote: any = await yahooFinance.quote('^TNX');
+    const bondYield = quote?.regularMarketPrice ?? 0;
 
-    const response = await fetch(
-      `https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A1CAAAEY&api_key=${apiKey}&file_type=json&sort_order=desc&limit=1`
-    );
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `Failed to fetch bond yield: ${response.statusText}` },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    const latestValue = data.observations[0]?.value;
-    
-    if (!latestValue || latestValue === '.') {
+    if (!bondYield || bondYield <= 0) {
       return NextResponse.json(
         { error: 'No valid bond yield data found' },
         { status: 404 }
       );
     }
 
-    const bondYield = parseFloat(latestValue);
-    
     return NextResponse.json({ bondYield });
   } catch (error) {
     console.error('Error fetching bond yield:', error);

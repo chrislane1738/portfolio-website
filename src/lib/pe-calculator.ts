@@ -54,58 +54,51 @@ function calculateMedian(numbers: number[]): number {
  */
 export function runFullAnalysis(rawData: any) {
   try {
-    console.log('Starting full P/E analysis...');
-    
-    // Extract target data
-    const targetOverview = rawData.target.overview;
-    const targetQuote = rawData.target.quote;
-    
-    // Get target data
-    const ttmEps = parseFloat(targetOverview.EPS) || 0;
-    const currentPE = parseFloat(targetOverview.PERatio) || 0;
-    const forwardPE = parseFloat(targetOverview.ForwardPE) || currentPE;
-    const currentPrice = parseFloat(targetQuote['Global Quote']['05. price']) || 0;
-    
+    // Extract target data (now from yahoo-finance2 shape)
+    const target = rawData.target;
+
+    const ttmEps = target.eps || 0;
+    const currentPE = target.trailingPE || 0;
+    const forwardPE = target.forwardPE || currentPE;
+    const currentPrice = target.currentPrice || 0;
+
     // Calculate Forward EPS
     const forwardEps = forwardPE > 0 ? currentPrice / forwardPE : ttmEps;
-    
-    // Extract peer P/E ratios with ticker information
+
+    // Peer data is already pre-filtered by the API route
     const peerPEsWithTickers = rawData.peers
-      .map((peer: any) => ({
-        ticker: peer.ticker,
-        pe: parseFloat(peer.overview.PERatio)
-      }))
-      .filter((peer: any) => !isNaN(peer.pe) && peer.pe > 0);
-    
+      .filter((peer: any) => peer.pe > 0)
+      .map((peer: any) => ({ ticker: peer.ticker, pe: peer.pe }));
+
     // Extract just the P/E ratios for filtering
     const peerPEs = peerPEsWithTickers.map((peer: { ticker: string; pe: number }) => peer.pe);
-    
+
     // Filter outliers from peer P/E ratios using IQR method
     const filteredPeerPEs = filterOutliersIQR(peerPEs);
-    
+
     // Calculate peer statistics using the filtered P/E ratios
     const averagePE = calculateAverage(filteredPeerPEs);
     const medianPE = calculateMedian(filteredPeerPEs);
-    
+
     // Filter the peer data to match the filtered P/E ratios for display
-    const filteredPeerPEsWithTickers = peerPEsWithTickers.filter((peer: { ticker: string; pe: number }) => 
+    const filteredPeerPEsWithTickers = peerPEsWithTickers.filter((peer: { ticker: string; pe: number }) =>
       filteredPeerPEs.includes(peer.pe)
     );
-    
+
     // Calculate Fair P/E Estimate (average of 3 key metrics)
     const fairPE = Math.round(((currentPE + averagePE + medianPE) / 3) * 100) / 100;
-    
+
     // Calculate intrinsic value and upside using Forward EPS
     const intrinsicValue = fairPE * forwardEps;
     const upsidePercentage = currentPrice > 0 ? ((intrinsicValue - currentPrice) / currentPrice) * 100 : 0;
-    
+
     // Determine investment rating
     let rating = 'HOLD';
-    if (upsidePercentage > 10) rating = 'BUY';
-    else if (upsidePercentage < -3) rating = 'SELL';
-    
+    if (upsidePercentage > 5) rating = 'BUY';
+    else if (upsidePercentage < 0) rating = 'SELL';
+
     const results = {
-      targetTicker: rawData.target.ticker,
+      targetTicker: target.ticker,
       targetPE: currentPE,
       peerPEs: filteredPeerPEsWithTickers,
       averagePE,
@@ -117,15 +110,13 @@ export function runFullAnalysis(rawData: any) {
       intrinsicValue,
       upsidePercentage,
       rating,
-      // Additional metrics for display
       totalPeers: rawData.peers.length,
       filteredPeers: filteredPeerPEs.length,
       outliersRemoved: rawData.peers.length - filteredPeerPEs.length
     };
-    
-    console.log('P/E analysis completed:', results);
+
     return results;
-    
+
   } catch (error) {
     console.error('Error in runFullAnalysis:', error);
     throw new Error('Failed to complete P/E analysis');

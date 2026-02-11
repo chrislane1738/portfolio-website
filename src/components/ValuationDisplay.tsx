@@ -42,6 +42,12 @@ export default function ValuationDisplay({ results }: ValuationDisplayProps) {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
   };
 
+  const getDynamicRating = (upside: number) => {
+    if (upside < 0) return 'SELL';
+    if (upside > 5) return 'BUY';
+    return 'HOLD';
+  };
+
   const getRatingColor = (rating: string) => {
     switch (rating) {
       case 'BUY':
@@ -92,8 +98,8 @@ export default function ValuationDisplay({ results }: ValuationDisplayProps) {
 
         {/* Investment Rating */}
         <div className="text-center">
-          <div className={`inline-flex items-center px-6 py-3 rounded-full border ${getRatingColor(results.rating)}`}>
-            <span className="text-lg font-semibold">Investment Rating: {results.rating}</span>
+          <div className={`inline-flex items-center px-6 py-3 rounded-full border ${getRatingColor(getDynamicRating(calculatedUpsidePercentage))}`}>
+            <span className="text-lg font-semibold">Investment Rating: {getDynamicRating(calculatedUpsidePercentage)}</span>
           </div>
         </div>
 

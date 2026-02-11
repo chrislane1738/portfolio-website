@@ -1,56 +1,65 @@
 import { NextResponse } from 'next/server';
-import { getStockFinancials } from '@/lib/api';
+import YahooFinance from 'yahoo-finance2';
 import { ScreenedStock } from '@/lib/screener';
+
+const yahooFinance = new YahooFinance();
 
 export async function GET() {
   try {
-    console.log('--- Screener API route started ---');
-    
-    // Use sample tickers for now to avoid API rate limits
     const sampleTickers = ['AAPL', 'MSFT', 'JNJ', 'PG', 'KO', 'PEP', 'WMT', 'HD', 'JPM', 'V'];
     const screenedStocks: ScreenedStock[] = [];
-    
-    console.log('Screening these tickers:', sampleTickers);
-    
+
     for (const ticker of sampleTickers) {
       try {
-        console.log(`Processing ${ticker}...`);
-        
-        const financials = await getStockFinancials(ticker);
-        console.log('Data received for ticker:', ticker, financials);
-        
-        if (passesGrahamScreen(financials)) {
-          const marketCap = parseFloat(financials.overview.MarketCapitalization) || 0;
-          const dividendYield = parseFloat(financials.overview.DividendYield) || 0;
-          const eps = parseFloat(financials.overview.EPS) || 0;
-          const price = parseFloat(financials.quote['05. price']) || 0;
-          
-          screenedStocks.push({
-            ticker,
-            name: financials.overview.Name,
-            marketCap,
-            dividendYield,
-            eps,
-            price,
-            fullFinancialData: financials // Store the complete financial data
-          });
-          
-          console.log(`✓ ${ticker} passed screening`);
-        } else {
-          console.log(`✗ ${ticker} failed screening`);
-        }
-        
-        // Add delay to respect API rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+        const quote: any = await yahooFinance.quoteSummary(ticker, {
+          modules: ['summaryDetail', 'defaultKeyStatistics', 'price', 'earningsHistory', 'incomeStatementHistory']
+        });
+
+        const marketCap = quote.price?.marketCap ?? 0;
+        const dividendYield = quote.summaryDetail?.dividendYield ?? 0;
+        const eps = quote.defaultKeyStatistics?.trailingEps ?? 0;
+        const price = quote.price?.regularMarketPrice ?? 0;
+        const pe = quote.summaryDetail?.trailingPE ?? 0;
+        const name = quote.price?.shortName ?? ticker;
+
+        // Graham screen: market cap > $1B
+        if (marketCap < 1_000_000_000) continue;
+
+        // Map earnings history to the shape calculateGrowthRate expects
+        const earningsHistory = (quote.earningsHistory?.history ?? []).map((e: any) => ({
+          reportedEPS: String(e.epsActual ?? 0),
+        }));
+
+        // Build fullFinancialData in the shape CalculatorDisplay expects
+        const fullFinancialData = {
+          overview: {
+            EPS: String(eps),
+            MarketCapitalization: String(marketCap),
+            PERatio: String(pe),
+            DividendYield: String(dividendYield),
+            Name: name,
+          },
+          quote: {
+            '05. price': String(price),
+          },
+          earnings: earningsHistory,
+        };
+
+        screenedStocks.push({
+          ticker,
+          name,
+          marketCap,
+          dividendYield,
+          eps,
+          price,
+          fullFinancialData,
+        });
+
       } catch (error) {
         console.error(`Error processing ${ticker}:`, error);
       }
     }
-    
-    console.log(`Sample screening complete. Found ${screenedStocks.length} qualifying stocks.`);
-    console.log('--- Screener API route finished ---');
-    
+
     return NextResponse.json(screenedStocks);
   } catch (error) {
     console.error('Error running Graham screener:', error);
@@ -58,56 +67,5 @@ export async function GET() {
       { error: error instanceof Error ? error.message : 'Failed to run screener' },
       { status: 500 }
     );
-  }
-}
-
-/**
- * Check if a stock passes Graham's screening criteria
- * TEMPORARILY RELAXED FOR DEBUGGING
- */
-function passesGrahamScreen(financials: any): boolean {
-  try {
-    // 1. Market Cap > $1 Billion (KEEPING THIS CHECK)
-    const marketCap = parseFloat(financials.overview.MarketCapitalization);
-    if (!marketCap || marketCap < 1000000000) { // 1 billion
-      return false;
-    }
-    
-    // TEMPORARILY COMMENTED OUT: 10+ years of positive earnings
-    // const incomeStatements = financials.incomeStatements;
-    // if (!incomeStatements || incomeStatements.length < 10) {
-    //   return false;
-    // }
-    
-    // Check last 10 years of net income
-    // for (let i = 0; i < 10; i++) {
-    //   const netIncome = parseFloat(incomeStatements[i]?.netIncome);
-    //   if (!netIncome || netIncome <= 0) {
-    //     return false;
-    //   }
-    // }
-    
-    // TEMPORARILY COMMENTED OUT: Dividend history check
-    // const dividendYield = parseFloat(financials.overview.DividendYield);
-    // if (!dividendYield || dividendYield <= 0) {
-    //   return false;
-    // }
-    
-    // TEMPORARILY COMMENTED OUT: Additional quality checks for debugging
-    // const eps = parseFloat(financials.overview.EPS);
-    // if (!eps || eps <= 0) {
-    //   return false;
-    // }
-    
-    // const peRatio = parseFloat(financials.overview.PERatio);
-    // if (!peRatio || peRatio <= 0 || peRatio > 50) { // Reasonable P/E range
-    //   return false;
-    // }
-    
-    return true;
-    
-  } catch (error) {
-    console.error('Error in Graham screening:', error);
-    return false;
   }
 }

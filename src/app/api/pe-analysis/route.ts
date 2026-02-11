@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import YahooFinance from 'yahoo-finance2';
 
-// Helper function to add delays between API calls
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+const yahooFinance = new YahooFinance();
 
 export async function POST(request: NextRequest) {
   try {
     const { targetTicker, peerTickers } = await request.json();
-    
+
     if (!targetTicker || !peerTickers || peerTickers.length === 0) {
       return NextResponse.json(
         { error: 'Target ticker and peer tickers are required' },
@@ -14,53 +14,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Starting P/E analysis for:', targetTicker, 'with peers:', peerTickers);
-
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
-    const baseUrl = 'https://www.alphavantage.co/query';
-
-    // Fetch target stock overview (current P/E, TTM EPS, Forward P/E)
-    const targetOverviewRes = await fetch(`${baseUrl}?function=OVERVIEW&symbol=${targetTicker}&apikey=${apiKey}`);
-    const targetOverview = await targetOverviewRes.json();
-    await delay(250);
-
-    // Fetch target stock current price from GLOBAL_QUOTE
-    const targetQuoteRes = await fetch(`${baseUrl}?function=GLOBAL_QUOTE&symbol=${targetTicker}&apikey=${apiKey}`);
-    const targetQuote = await targetQuoteRes.json();
-    await delay(250);
-
-
-    // Fetch peer stock overviews (current P/E only)
-    const peerDataPromises = peerTickers.map(async (ticker: string, index: number) => {
-      try {
-        await delay(250 * (index + 1));
-        const peerRes = await fetch(`${baseUrl}?function=OVERVIEW&symbol=${ticker}&apikey=${apiKey}`);
-        const peerData = await peerRes.json();
-        return { ticker, data: peerData };
-      } catch (error) {
-        console.error(`Error fetching data for peer ${ticker}:`, error);
-        return { ticker, data: null };
-      }
+    // Fetch target stock data
+    const targetQuote: any = await yahooFinance.quoteSummary(targetTicker, {
+      modules: ['summaryDetail', 'defaultKeyStatistics', 'price']
     });
 
-    const peerDataResults = await Promise.all(peerDataPromises);
-    const peerData = peerDataResults.filter(result => result.data !== null);
-
-    // Structure the response data with all raw data needed for the client
-    const analysisData = {
-      target: {
-        ticker: targetTicker,
-        overview: targetOverview,
-        quote: targetQuote
-      },
-      peers: peerData.map(result => ({
-        ticker: result.ticker,
-        overview: result.data
-      }))
+    const targetData = {
+      ticker: targetTicker,
+      trailingPE: targetQuote.summaryDetail?.trailingPE ?? 0,
+      forwardPE: targetQuote.summaryDetail?.forwardPE ?? 0,
+      eps: targetQuote.defaultKeyStatistics?.trailingEps ?? 0,
+      currentPrice: targetQuote.price?.regularMarketPrice ?? 0,
+      name: targetQuote.price?.shortName ?? targetTicker,
     };
 
-    console.log('P/E analysis data fetched successfully');
-    return NextResponse.json(analysisData);
+    // Fetch peer stock data in parallel
+    const peerResults = await Promise.all(
+      peerTickers.map(async (ticker: string) => {
+        try {
+          const peerQuote: any = await yahooFinance.quoteSummary(ticker, {
+            modules: ['summaryDetail', 'price']
+          });
+          return {
+            ticker,
+            pe: peerQuote.summaryDetail?.trailingPE ?? 0,
+            name: peerQuote.price?.shortName ?? ticker,
+          };
+        } catch (error) {
+          console.error(`Error fetching peer ${ticker}:`, error);
+          return null;
+        }
+      })
+    );
+
+    const peers = peerResults.filter((p): p is NonNullable<typeof p> => p !== null && p.pe > 0);
+
+    return NextResponse.json({ target: targetData, peers });
 
   } catch (error) {
     console.error('Error in P/E analysis API:', error);

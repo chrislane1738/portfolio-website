@@ -2,7 +2,7 @@
 
 export default function Hero() {
   return (
-    <section id="about" className="pt-32 pb-20 px-4 bg-gray-900 animate-fade-in-up">
+    <section id="about" className="min-h-[calc(100vh-80px)] flex items-center px-4 bg-gray-900 animate-fade-in-up">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-8 leading-tight">
           A finance student and operator who believes in learning by doing.
