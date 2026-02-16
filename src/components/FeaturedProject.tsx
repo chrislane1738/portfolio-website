@@ -10,8 +10,8 @@ export default function FeaturedProject() {
             <div className="md:w-1/2 flex items-center justify-center p-8">
               <div className="relative w-full max-w-md">
                 <Image
-                  src="/delta_fightwear.png"
-                  alt="Delta Fightwear"
+                  src="/vfc-card.png"
+                  alt="VFC Research Dashboard"
                   width={400}
                   height={400}
                   className="object-contain rounded-lg"
@@ -19,20 +19,20 @@ export default function FeaturedProject() {
                 />
               </div>
             </div>
-            
+
             {/* Text Section */}
             <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
               <p className="text-lg text-gray-700 leading-relaxed mb-8">
-                I noticed that countless of my favorite fighters used a high-split type of shorts in their fights. However, to my surprise, I found that my choices were limited. Either they cost too much, didn&apos;t have very good designs, or were just cheap in quality. Since I do Jiu-Jitsu mainly and I think that these shorts just look awesome in general, I really wanted some good-looking, quality shorts that matched my favorite fighters. And that&apos;s how Delta Fightwear was born. While it&apos;s still a work in progress, Delta will hold an incredible catalogue. Stay tuned and check out the site for any updates!
+                Built for my university&apos;s Viking Fund Club, this investment research dashboard streamlines the equity analysis process for club members. It aggregates key financial data, valuation metrics, and performance indicators into a single interactive interface, making it easier for analysts to evaluate potential investments and present their findings to the group.
               </p>
               <div className="mt-auto">
-                <a 
-                  href="https://deltafightwear.com"
+                <a
+                  href="https://vikingfunddashboard.streamlit.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors duration-200"
                 >
-                  Visit Website
+                  Visit Dashboard
                 </a>
               </div>
             </div>

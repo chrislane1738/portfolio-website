@@ -21,13 +21,7 @@ export default function Header() {
             >
               About
             </Link>
-            <Link 
-              href="/delta" 
-              className="text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Delta
-            </Link>
-            <Link 
+            <Link
               href="/projects" 
               className="text-gray-300 hover:text-white transition-colors duration-300"
             >
