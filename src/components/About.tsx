@@ -33,8 +33,9 @@ export default function About() {
                 fundamental analysis and leveraging AI (like Claude Code) for deeper market insights.
               </li>
               <li>
-                <span className="text-yellow-300 font-semibold">Entrepreneurship:</span> Currently
-                filling a gap in the combat sports market by developing a new line of fighting shorts.
+                <span className="text-yellow-300 font-semibold">Entrepreneurship:</span> Building{' '}
+                <a href="/stralane" className="text-blue-400 hover:text-blue-300 underline">Stralane</a>,
+                an investing tool for investors of all levels — currently in a developing beta with rapid feature updates.
               </li>
               <li>
                 <span className="text-yellow-300 font-semibold">Leadership:</span> From the DVC

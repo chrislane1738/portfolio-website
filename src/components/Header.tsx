@@ -22,10 +22,16 @@ export default function Header() {
               About
             </Link>
             <Link
-              href="/projects" 
+              href="/projects"
               className="text-gray-300 hover:text-white transition-colors duration-300"
             >
               Projects
+            </Link>
+            <Link
+              href="/stralane"
+              className="text-gray-300 hover:text-white transition-colors duration-300"
+            >
+              Stralane
             </Link>
           </div>
         </div>
