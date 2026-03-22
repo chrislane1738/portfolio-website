@@ -1,11 +1,9 @@
-import About from '@/components/About'
+import AboutLayout from '@/components/AboutLayout'
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-gray-900">
-      <div className="pt-20">
-        <About />
-      </div>
-    </main>
+    <section className="bg-bg-base pt-32 pb-24 px-4 min-h-screen">
+      <AboutLayout />
+    </section>
   )
 }
