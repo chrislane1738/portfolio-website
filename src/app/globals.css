@@ -47,3 +47,26 @@ main {
   transform: scale(1.28);
   box-shadow: 0 0 12px rgba(91, 164, 207, 0.6);
 }
+
+/* Floating cards animation for landing page teaser */
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(10px, -15px) rotate(0.5deg);
+  }
+  50% {
+    transform: translate(-5px, 10px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translate(-10px, -8px) rotate(0.3deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+.floating-card {
+  animation: float 20s ease-in-out infinite;
+}
