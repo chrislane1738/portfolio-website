@@ -1,9 +1,11 @@
 import Hero from '@/components/Hero'
+import TimelineTeaser from '@/components/TimelineTeaser'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-900">
+    <>
       <Hero />
-    </main>
+      <TimelineTeaser />
+    </>
   )
 }
