@@ -54,7 +54,7 @@ export default function PEAnalyzerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 py-8">
+    <div className="min-h-screen bg-gray-950 pt-24 pb-8">
       <div className="container mx-auto px-4">
         {/* Navigation */}
         <div className="mb-8">
