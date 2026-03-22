@@ -57,7 +57,7 @@ export const projects: Project[] = [
   {
     id: 'delta-fightwear',
     title: 'Delta Fightwear',
-    description: 'E-commerce brand for combat sports apparel — from supply chain to storefront.',
+    description: 'E-commerce brand for combat sports apparel. From supply chain to storefront.',
     year: 'Aug 2024',
     visibility: 'public',
     image: '/delta_fightwear.png',
@@ -77,7 +77,7 @@ export const projects: Project[] = [
   {
     id: 'stralane',
     title: 'Stralane',
-    description: 'Investing platform for retail investors — currently in a developing beta with rapid feature updates.',
+    description: 'Investing platform for retail investors. Currently in a developing beta with rapid feature updates.',
     year: 'Feb 2025',
     visibility: 'private',
     image: '/stralane-screenshot.png',

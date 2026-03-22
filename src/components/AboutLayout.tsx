@@ -59,7 +59,7 @@ export default function AboutLayout() {
             <p className="font-mono text-[13px] text-text-body leading-[1.8]">
               Obsessed with fundamental analysis and leveraging AI for deeper market
               insights. I&apos;ve managed a personal long-term portfolio since age 18,
-              building tools along the way to sharpen my process — from Graham-style
+              building tools along the way to sharpen my process. From Graham-style
               screeners to P/E comparison engines.
             </p>
           </div>
@@ -73,7 +73,7 @@ export default function AboutLayout() {
             <p className="font-mono text-[13px] text-text-body leading-[1.8]">
               Currently building Stralane, an investing platform for retail investors
               in a developing beta. Every tool on this site started as a problem I
-              wanted to solve — the best way to learn is to ship something real.
+              wanted to solve. The best way to learn is to ship something real.
             </p>
           </div>
 
@@ -85,8 +85,8 @@ export default function AboutLayout() {
             <h2 className="font-serif text-[18px] text-white mb-3">Leadership</h2>
             <p className="font-mono text-[13px] text-text-body leading-[1.8]">
               From the DVC Foundation to founding the Viking Fund Club, I&apos;m
-              passionate about building platforms that help others succeed —
-              spearheading digital transformation for non-profits and creating
+              passionate about building platforms that help others succeed.
+              Spearheading digital transformation for non-profits and creating
               sustainable value through community.
             </p>
           </div>

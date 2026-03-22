@@ -27,15 +27,15 @@ export default function Hero() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Scroll thresholds from spec
-  const initialsOpacity = Math.max(0, 0.03 - (scrollProgress / 0.3) * 0.03)
-  const nameOpacity = scrollProgress < 0.15 ? 0 : Math.min((scrollProgress - 0.15) / 0.3, 1)
-  const taglineOpacity = scrollProgress < 0.35 ? 0 : Math.min((scrollProgress - 0.35) / 0.2, 1)
-  const lineHeight = scrollProgress < 0.55 ? 0 : Math.min((scrollProgress - 0.55) / 0.25, 1) * 120
-  const introOpacity = scrollProgress < 0.6 ? 0 : Math.min((scrollProgress - 0.6) / 0.25, 1)
+  // Scroll thresholds (adjusted so intro is fully visible before user scrolls past)
+  const initialsOpacity = Math.max(0, 0.03 - (scrollProgress / 0.2) * 0.03)
+  const nameOpacity = scrollProgress < 0.1 ? 0 : Math.min((scrollProgress - 0.1) / 0.2, 1)
+  const taglineOpacity = scrollProgress < 0.25 ? 0 : Math.min((scrollProgress - 0.25) / 0.15, 1)
+  const lineHeight = scrollProgress < 0.35 ? 0 : Math.min((scrollProgress - 0.35) / 0.15, 1) * 120
+  const introOpacity = scrollProgress < 0.4 ? 0 : Math.min((scrollProgress - 0.4) / 0.15, 1)
 
   return (
-    <section ref={sectionRef} className="relative min-h-[200vh] bg-bg-deep">
+    <section ref={sectionRef} className="relative min-h-[250vh] bg-bg-deep">
       {/* Sticky container for the viewport */}
       <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
         {/* Ghosted initials */}
@@ -82,8 +82,8 @@ export default function Hero() {
           className="font-mono text-[13px] text-text-subtle max-w-md text-center mt-6 leading-[1.7] z-10 px-4"
           style={{ opacity: introOpacity }}
         >
-          A finance student and operator who believes in learning by doing —
-          building tools, leading teams, and turning ideas into products.
+          A finance student and operator who believes in learning by doing.
+          Building tools, leading teams, and turning ideas into products.
         </p>
       </div>
     </section>

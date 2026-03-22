@@ -13,7 +13,7 @@ export default function ProjectsPage() {
             What I&apos;ve Built
           </h1>
           <p className="font-mono text-[13px] text-text-subtle mt-3 max-w-lg leading-[1.7]">
-            Tools, platforms, and experiments — built to learn, built to ship.
+            Tools, platforms, and experiments. Built to learn, built to ship.
           </p>
         </div>
 
