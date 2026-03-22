@@ -5,6 +5,7 @@ export interface Project {
   description: string;
   year: string;
   visibility: 'public' | 'private';
+  image?: string;
   tech?: string[];
   link?: {
     url: string;
@@ -20,6 +21,7 @@ export const projects: Project[] = [
     description: 'Interactive tool for visualizing compound growth with configurable monthly contributions and compounding frequencies.',
     year: '2024',
     visibility: 'public',
+    image: '/calculator-preview.png',
     tech: ['Next.js', 'Chart.js', 'TypeScript'],
     link: { url: '/calculator', label: 'Try it', external: false },
   },
@@ -29,6 +31,7 @@ export const projects: Project[] = [
     description: 'Stock screening tool implementing Benjamin Graham\'s value investing methodology with real-time market data.',
     year: '2024',
     visibility: 'public',
+    image: '/benjamin-graham.jpg',
     tech: ['Next.js', 'yahoo-finance2', 'TypeScript'],
     link: { url: '/graham-screener', label: 'Try it', external: false },
   },
@@ -38,6 +41,7 @@ export const projects: Project[] = [
     description: 'Compare target stock P/E ratios against industry peers with trailing and forward metrics.',
     year: '2024',
     visibility: 'public',
+    image: '/pe-comparable.png',
     tech: ['Next.js', 'yahoo-finance2', 'Chart.js'],
     link: { url: '/pe-analyzer', label: 'Try it', external: false },
   },
@@ -47,6 +51,7 @@ export const projects: Project[] = [
     description: 'Dashboard for constructing and analyzing investment portfolios with performance tracking.',
     year: '2024',
     visibility: 'public',
+    image: '/Portfolio-builder.png',
     tech: ['Python', 'Streamlit'],
     link: { url: 'https://personalanalytics-juf6xlhx6valr7qpabuupu.streamlit.app/', label: 'View', external: true },
   },
@@ -56,6 +61,7 @@ export const projects: Project[] = [
     description: 'Research dashboard built for the Viking Fund Club to streamline equity analysis and team collaboration.',
     year: '2025',
     visibility: 'public',
+    image: '/vfc-card.png',
     tech: ['Python', 'Streamlit'],
     link: { url: 'https://vikingfunddashboard.streamlit.app/', label: 'View', external: true },
   },
@@ -65,6 +71,7 @@ export const projects: Project[] = [
     description: 'E-commerce brand for combat sports apparel — from supply chain to storefront.',
     year: '2024',
     visibility: 'public',
+    image: '/delta_fightwear.png',
     tech: ['E-commerce', 'Supply Chain'],
     link: { url: 'https://deltafightwear.com/', label: 'Visit', external: true },
   },
@@ -74,6 +81,7 @@ export const projects: Project[] = [
     description: 'Investing platform for retail investors — currently in a developing beta with rapid feature updates.',
     year: '2025',
     visibility: 'private',
+    image: '/stralane-logo.png',
     tech: ['In Development'],
     link: { url: 'https://stralane.com', label: 'Visit', external: true },
   },
