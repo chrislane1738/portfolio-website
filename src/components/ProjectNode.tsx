@@ -19,34 +19,34 @@ export default function ProjectNode({
       />
 
       {/* Card with background image */}
-      <div className="relative overflow-hidden rounded-sm">
+      <div className="relative overflow-hidden rounded-sm border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.08)] transition-colors duration-300">
         {/* Faded background image with vignette */}
         {project.image && (
           <div className="absolute inset-0 z-0">
             <img
               src={project.image}
               alt=""
-              className="w-full h-full object-cover opacity-[0.07]"
+              className="w-full h-full object-cover opacity-[0.12]"
             />
             {/* Vignette overlay — radial gradient from transparent center to dark edges */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 20%, rgba(8,8,8,0.85) 70%, #080808 100%)',
+                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(8,8,8,0.8) 70%, #080808 100%)',
               }}
             />
-            {/* Top and bottom fade for clean blending */}
+            {/* Bottom fade for clean blending */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, #080808 0%, transparent 15%, transparent 80%, #080808 100%)',
+                background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, #080808 100%)',
               }}
             />
           </div>
         )}
 
         {/* Content */}
-        <div className="relative z-10 py-4 pr-4">
+        <div className="relative z-10 p-6 md:p-8 min-h-[180px] flex flex-col justify-end">
           {/* Year label */}
           <span className="font-mono text-[10px] text-text-muted tracking-[2px]">
             {project.year}
