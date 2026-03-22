@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { publicProjects, privateProjects } from '@/data/projects'
+import { projects } from '@/data/projects'
 import ProjectNode from './ProjectNode'
-import SectionDivider from './SectionDivider'
 
 export default function ProjectTimeline() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -31,27 +30,15 @@ export default function ProjectTimeline() {
     return () => observer.disconnect()
   }, [])
 
-  let globalIndex = 0
-
   return (
     <div ref={containerRef}>
       {/* Timeline line container */}
       <div className="relative ml-[5%] md:ml-[15%] pl-8">
         <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-accent opacity-30" />
 
-        {/* Public section */}
-        <SectionDivider label="// PUBLIC" />
-        {publicProjects.map((project) => {
-          const idx = globalIndex++
-          return <ProjectNode key={project.id} project={project} index={idx} />
-        })}
-
-        {/* Private section */}
-        <SectionDivider label="// PRIVATE" />
-        {privateProjects.map((project) => {
-          const idx = globalIndex++
-          return <ProjectNode key={project.id} project={project} index={idx} />
-        })}
+        {projects.map((project, index) => (
+          <ProjectNode key={project.id} project={project} index={index} />
+        ))}
       </div>
     </div>
   )
