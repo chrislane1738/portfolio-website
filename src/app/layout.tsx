@@ -1,8 +1,18 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { DM_Serif_Display, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const dmSerif = DM_Serif_Display({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-dm-serif',
+})
+
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ['300', '400', '500'],
+  subsets: ['latin'],
+  variable: '--font-ibm-plex',
+})
 
 export const metadata: Metadata = {
   title: "Chris Lane's Portfolio",
@@ -15,8 +25,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-900`}>{children}</body>
+    <html lang="en" className={`${dmSerif.variable} ${ibmPlexMono.variable}`}>
+      <body className="font-mono bg-bg-base text-text-secondary">
+        {children}
+      </body>
     </html>
   )
 }
