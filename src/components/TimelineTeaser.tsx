@@ -5,7 +5,7 @@ import { projects } from '@/data/projects'
 
 export default function TimelineTeaser() {
   return (
-    <section className="relative bg-bg-deep py-24 px-4 min-h-[60vh]">
+    <section className="relative bg-bg-deep py-32 px-4 min-h-[80vh]">
       {/* Centered content on top */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[40vh]">
         <span className="font-mono text-[10px] text-text-muted tracking-[3px] uppercase mb-4">
