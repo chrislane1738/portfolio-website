@@ -1,11 +1,16 @@
 import Hero from '@/components/Hero'
 import TimelineTeaser from '@/components/TimelineTeaser'
+import FloatingCards from '@/components/FloatingCards'
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <TimelineTeaser />
+      {/* Floating cards region — covers the gap between hero and teaser text */}
+      <div className="relative bg-bg-deep">
+        <FloatingCards />
+        <TimelineTeaser />
+      </div>
     </>
   )
 }
