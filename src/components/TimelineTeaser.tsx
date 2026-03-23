@@ -5,14 +5,14 @@ import { projects } from '@/data/projects'
 
 // Fixed positions for floating cards so they don't overlap badly
 const cardPositions = [
-  { top: '5%', left: '2%', delay: '0s', duration: '18s' },
-  { top: '8%', left: '55%', delay: '2s', duration: '22s' },
-  { top: '30%', left: '35%', delay: '4s', duration: '20s' },
-  { top: '25%', left: '70%', delay: '1s', duration: '16s' },
-  { top: '55%', left: '5%', delay: '3s', duration: '19s' },
-  { top: '50%', left: '60%', delay: '5s', duration: '21s' },
-  { top: '70%', left: '25%', delay: '2.5s', duration: '17s' },
-  { top: '72%', left: '65%', delay: '0.5s', duration: '23s' },
+  { top: '5%', left: '2%', delay: '0s', duration: '11s' },
+  { top: '8%', left: '55%', delay: '1.5s', duration: '13s' },
+  { top: '30%', left: '35%', delay: '3s', duration: '12s' },
+  { top: '25%', left: '70%', delay: '0.8s', duration: '10s' },
+  { top: '55%', left: '5%', delay: '2s', duration: '11.5s' },
+  { top: '50%', left: '60%', delay: '3.5s', duration: '13.5s' },
+  { top: '70%', left: '25%', delay: '1.8s', duration: '10.5s' },
+  { top: '72%', left: '65%', delay: '0.3s', duration: '14s' },
 ]
 
 export default function TimelineTeaser() {

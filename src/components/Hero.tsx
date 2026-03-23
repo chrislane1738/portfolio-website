@@ -28,7 +28,7 @@ export default function Hero() {
   }, [])
 
   // Scroll thresholds (adjusted so intro is fully visible before user scrolls past)
-  const initialsOpacity = Math.max(0, 0.08 - (scrollProgress / 0.2) * 0.08)
+  const initialsOpacity = Math.max(0, 0.14 - (scrollProgress / 0.2) * 0.14)
   const nameOpacity = scrollProgress < 0.1 ? 0 : Math.min((scrollProgress - 0.1) / 0.2, 1)
   const taglineOpacity = scrollProgress < 0.25 ? 0 : Math.min((scrollProgress - 0.25) / 0.15, 1)
   const lineHeight = scrollProgress < 0.35 ? 0 : Math.min((scrollProgress - 0.35) / 0.15, 1) * 120
