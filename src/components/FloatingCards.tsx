@@ -1,102 +1,114 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { projects } from '@/data/projects'
 
+const projectsWithImages = projects.filter(p => p.image)
+
+// Each card gets a unique CSS animation with different keyframes
+// This avoids JS entirely — pure CSS, guaranteed to animate
+const cardConfigs = [
+  { top: '2%',  left: '0%',  anim: 'drift1', dur: '25s' },
+  { top: '5%',  left: '50%', anim: 'drift2', dur: '30s' },
+  { top: '25%', left: '25%', anim: 'drift3', dur: '28s' },
+  { top: '20%', left: '65%', anim: 'drift4', dur: '22s' },
+  { top: '50%', left: '5%',  anim: 'drift5', dur: '26s' },
+  { top: '45%', left: '55%', anim: 'drift6', dur: '32s' },
+  { top: '65%', left: '30%', anim: 'drift7', dur: '24s' },
+  { top: '60%', left: '70%', anim: 'drift8', dur: '27s' },
+]
+
 export default function FloatingCards() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const rafRef = useRef<number>(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const projectsWithImages = projects.filter(p => p.image)
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    const cards = Array.from(container.querySelectorAll<HTMLDivElement>('[data-float-card]'))
-    if (cards.length === 0) return
-
-    const cardW = 360
-    const cardH = 240
-
-    // Get container size, fallback to window if 0
-    const getSize = () => ({
-      w: Math.max(container.offsetWidth, 800) - cardW,
-      h: Math.max(container.offsetHeight, 500) - cardH,
-    })
-
-    // Initialize each card at a random position
-    const size = getSize()
-    const states = cards.map(() => {
-      const x = Math.random() * size.w
-      const y = Math.random() * size.h
-      return { x, y, tx: x, ty: y }
-    })
-
-    // Set initial positions
-    cards.forEach((card, i) => {
-      card.style.transform = `translate(${states[i].x}px, ${states[i].y}px)`
-    })
-
-    // Pick new random targets
-    const pickTargets = () => {
-      const s = getSize()
-      states.forEach((st) => {
-        st.tx = Math.random() * s.w
-        st.ty = Math.random() * s.h
-      })
-    }
-
-    // Animation loop
-    const animate = () => {
-      cards.forEach((card, i) => {
-        const st = states[i]
-        st.x += (st.tx - st.x) * 0.006
-        st.y += (st.ty - st.y) * 0.006
-        card.style.transform = `translate(${st.x}px, ${st.y}px)`
-      })
-      rafRef.current = requestAnimationFrame(animate)
-    }
-
-    pickTargets()
-    rafRef.current = requestAnimationFrame(animate)
-    intervalRef.current = setInterval(pickTargets, 4000)
-
-    return () => {
-      cancelAnimationFrame(rafRef.current)
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-  }, [projectsWithImages.length])
-
   return (
-    <div
-      ref={containerRef}
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      aria-hidden="true"
-    >
-      {projectsWithImages.map((project) => (
-        <div
-          key={project.id}
-          data-float-card
-          className="absolute will-change-transform"
-          style={{ top: 0, left: 0 }}
-        >
-          <div className="relative w-[300px] md:w-[360px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.05)] opacity-[0.14]">
-            <img
-              src={project.image}
-              alt=""
-              className="w-full h-auto object-cover"
-            />
+    <>
+      <style jsx global>{`
+        @keyframes drift1 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(80px, -40px); }
+          50%  { transform: translate(-30px, 60px); }
+          75%  { transform: translate(50px, 30px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift2 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(-60px, 50px); }
+          50%  { transform: translate(40px, -30px); }
+          75%  { transform: translate(-40px, -50px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift3 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(50px, 70px); }
+          50%  { transform: translate(-70px, -20px); }
+          75%  { transform: translate(30px, -60px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift4 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(-80px, -30px); }
+          50%  { transform: translate(60px, 50px); }
+          75%  { transform: translate(-20px, 70px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift5 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(70px, 40px); }
+          50%  { transform: translate(-50px, -60px); }
+          75%  { transform: translate(40px, -30px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift6 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(-40px, 60px); }
+          50%  { transform: translate(80px, -40px); }
+          75%  { transform: translate(-60px, -20px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift7 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(60px, -50px); }
+          50%  { transform: translate(-40px, 40px); }
+          75%  { transform: translate(50px, 60px); }
+          100% { transform: translate(0, 0); }
+        }
+        @keyframes drift8 {
+          0%   { transform: translate(0, 0); }
+          25%  { transform: translate(-70px, 30px); }
+          50%  { transform: translate(30px, -70px); }
+          75%  { transform: translate(-50px, 40px); }
+          100% { transform: translate(0, 0); }
+        }
+      `}</style>
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {projectsWithImages.map((project, i) => {
+          const cfg = cardConfigs[i % cardConfigs.length]
+          return (
             <div
-              className="absolute inset-0"
+              key={project.id}
+              className="absolute"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(14,17,22,0.7) 80%, #0e1116 100%)',
+                top: cfg.top,
+                left: cfg.left,
+                animation: `${cfg.anim} ${cfg.dur} ease-in-out infinite`,
               }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
+            >
+              <div className="relative w-[280px] md:w-[340px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.06)] opacity-[0.12]">
+                <img
+                  src={project.image}
+                  alt=""
+                  className="w-full h-auto object-cover"
+                  loading="eager"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'radial-gradient(ellipse at center, transparent 35%, rgba(14,17,22,0.65) 75%, #0e1116 100%)',
+                  }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

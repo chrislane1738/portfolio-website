@@ -7,7 +7,7 @@ export default function Home() {
     <>
       <Hero />
       {/* Floating cards region — covers the gap between hero and teaser text */}
-      <div className="relative bg-bg-deep">
+      <div className="relative bg-bg-deep min-h-[80vh]">
         <FloatingCards />
         <TimelineTeaser />
       </div>
