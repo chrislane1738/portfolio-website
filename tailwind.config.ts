@@ -10,9 +10,9 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          deep: '#050505',
-          base: '#080808',
-          elevated: '#0a0a0a',
+          deep: '#0b0d12',
+          base: '#0e1116',
+          elevated: '#141821',
         },
         accent: {
           DEFAULT: '#5ba4cf',

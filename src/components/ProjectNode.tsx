@@ -32,14 +32,14 @@ export default function ProjectNode({
             <div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(8,8,8,0.8) 70%, #080808 100%)',
+                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(14,17,22,0.8) 70%, #0e1116 100%)',
               }}
             />
             {/* Bottom fade for clean blending */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, #080808 100%)',
+                background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, #0e1116 100%)',
               }}
             />
           </div>

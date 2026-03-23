@@ -1,88 +1,94 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { projects } from '@/data/projects'
+
+interface CardState {
+  x: number
+  y: number
+  targetX: number
+  targetY: number
+}
 
 export default function FloatingCards() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<HTMLDivElement[]>([])
-  const animationRef = useRef<number>(0)
-  const positionsRef = useRef<{ x: number; y: number; targetX: number; targetY: number; vx: number; vy: number }[]>([])
+  const [mounted, setMounted] = useState(false)
 
   const projectsWithImages = projects.filter(p => p.image)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     const container = containerRef.current
     if (!container) return
 
-    const cards = cardsRef.current.filter(Boolean)
-    if (cards.length === 0) return
+    // Wait a frame so the container has real dimensions
+    const initTimeout = setTimeout(() => {
+      const cards = container.querySelectorAll<HTMLDivElement>('[data-float-card]')
+      if (cards.length === 0) return
 
-    const containerRect = container.getBoundingClientRect()
-    const cardW = 360
-    const cardH = 220
+      const w = container.offsetWidth
+      const h = container.offsetHeight
+      const cardW = 360
+      const cardH = 240
 
-    // Initialize positions spread across the container
-    positionsRef.current = cards.map((_, i) => {
-      const cols = 3
-      const rows = Math.ceil(cards.length / cols)
-      const col = i % cols
-      const row = Math.floor(i / cols)
-      const areaW = (containerRect.width - cardW) / cols
-      const areaH = (containerRect.height - cardH) / rows
-      const x = col * areaW + Math.random() * areaW * 0.6
-      const y = row * areaH + Math.random() * areaH * 0.6
+      // Spread cards across a grid to start
+      const states: CardState[] = Array.from(cards).map((_, i) => {
+        const cols = 3
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        const cellW = (w - cardW) / cols
+        const cellH = (h - cardH) / Math.ceil(cards.length / cols)
+        const x = col * cellW + Math.random() * cellW * 0.5
+        const y = row * cellH + Math.random() * cellH * 0.5
 
-      return {
-        x, y,
-        targetX: x,
-        targetY: y,
-        vx: 0,
-        vy: 0,
-      }
-    })
-
-    // Apply initial positions
-    cards.forEach((card, i) => {
-      const pos = positionsRef.current[i]
-      card.style.transform = `translate(${pos.x}px, ${pos.y}px)`
-    })
-
-    // Pick new random targets periodically
-    const pickNewTargets = () => {
-      const w = container.offsetWidth - cardW
-      const h = container.offsetHeight - cardH
-      positionsRef.current.forEach((pos) => {
-        // Move to a new random spot within ~200px of current position, clamped to bounds
-        pos.targetX = Math.max(0, Math.min(w, pos.x + (Math.random() - 0.5) * 400))
-        pos.targetY = Math.max(0, Math.min(h, pos.y + (Math.random() - 0.5) * 300))
+        return { x, y, targetX: x, targetY: y }
       })
-    }
 
-    // Animate with easing toward targets
-    const animate = () => {
-      const ease = 0.008
+      // Apply initial positions immediately
       cards.forEach((card, i) => {
-        const pos = positionsRef.current[i]
-        pos.x += (pos.targetX - pos.x) * ease
-        pos.y += (pos.targetY - pos.y) * ease
-        card.style.transform = `translate(${pos.x}px, ${pos.y}px)`
+        card.style.transform = `translate(${states[i].x}px, ${states[i].y}px)`
       })
-      animationRef.current = requestAnimationFrame(animate)
-    }
 
-    // Start animation loop
-    animationRef.current = requestAnimationFrame(animate)
+      const pickTargets = () => {
+        const cw = container.offsetWidth - cardW
+        const ch = container.offsetHeight - cardH
+        states.forEach((s) => {
+          s.targetX = Math.max(0, Math.min(cw, s.x + (Math.random() - 0.5) * 500))
+          s.targetY = Math.max(0, Math.min(ch, s.y + (Math.random() - 0.5) * 350))
+        })
+      }
 
-    // Pick new targets every 3-5 seconds
-    const interval = setInterval(pickNewTargets, 3500)
-    pickNewTargets()
+      pickTargets()
 
-    return () => {
-      cancelAnimationFrame(animationRef.current)
-      clearInterval(interval)
-    }
-  }, [projectsWithImages.length])
+      let raf: number
+      const animate = () => {
+        const ease = 0.015
+        cards.forEach((card, i) => {
+          const s = states[i]
+          s.x += (s.targetX - s.x) * ease
+          s.y += (s.targetY - s.y) * ease
+          card.style.transform = `translate(${s.x}px, ${s.y}px)`
+        })
+        raf = requestAnimationFrame(animate)
+      }
+
+      raf = requestAnimationFrame(animate)
+      const interval = setInterval(pickTargets, 2500)
+
+      return () => {
+        cancelAnimationFrame(raf)
+        clearInterval(interval)
+      }
+    }, 100)
+
+    return () => clearTimeout(initTimeout)
+  }, [mounted, projectsWithImages.length])
+
+  if (!mounted) return null
 
   return (
     <div
@@ -90,14 +96,14 @@ export default function FloatingCards() {
       className="absolute inset-0 pointer-events-none overflow-hidden"
       aria-hidden="true"
     >
-      {projectsWithImages.map((project, i) => (
+      {projectsWithImages.map((project) => (
         <div
           key={project.id}
-          ref={(el) => { if (el) cardsRef.current[i] = el }}
+          data-float-card
           className="absolute will-change-transform"
           style={{ top: 0, left: 0 }}
         >
-          <div className="relative w-[300px] md:w-[360px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.04)] opacity-[0.15]">
+          <div className="relative w-[300px] md:w-[360px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.05)] opacity-[0.14]">
             <img
               src={project.image}
               alt=""
@@ -106,7 +112,7 @@ export default function FloatingCards() {
             <div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(5,5,5,0.7) 80%, #050505 100%)',
+                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(14,17,22,0.7) 80%, #0e1116 100%)',
               }}
             />
           </div>
