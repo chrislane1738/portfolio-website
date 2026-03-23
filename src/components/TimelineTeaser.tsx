@@ -35,11 +35,18 @@ export default function TimelineTeaser() {
                 animationDuration: pos.duration,
               }}
             >
-              <div className="w-[220px] md:w-[280px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.04)] opacity-[0.08]">
+              <div className="relative w-[220px] md:w-[280px] rounded-sm overflow-hidden border border-[rgba(255,255,255,0.04)] opacity-[0.18]">
                 <img
                   src={project.image}
                   alt=""
                   className="w-full h-auto object-cover"
+                />
+                {/* Vignette overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'radial-gradient(ellipse at center, transparent 30%, rgba(5,5,5,0.7) 80%, #050505 100%)',
+                  }}
                 />
               </div>
             </div>

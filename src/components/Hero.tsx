@@ -28,7 +28,7 @@ export default function Hero() {
   }, [])
 
   // Scroll thresholds (adjusted so intro is fully visible before user scrolls past)
-  const initialsOpacity = Math.max(0, 0.03 - (scrollProgress / 0.2) * 0.03)
+  const initialsOpacity = Math.max(0, 0.08 - (scrollProgress / 0.2) * 0.08)
   const nameOpacity = scrollProgress < 0.1 ? 0 : Math.min((scrollProgress - 0.1) / 0.2, 1)
   const taglineOpacity = scrollProgress < 0.25 ? 0 : Math.min((scrollProgress - 0.25) / 0.15, 1)
   const lineHeight = scrollProgress < 0.35 ? 0 : Math.min((scrollProgress - 0.35) / 0.15, 1) * 120
@@ -44,6 +44,7 @@ export default function Hero() {
           style={{
             fontSize: 'clamp(200px, 40vw, 500px)',
             color: `rgba(255, 255, 255, ${initialsOpacity})`,
+            textShadow: initialsOpacity > 0.01 ? '0 0 80px rgba(255,255,255,0.03)' : 'none',
             letterSpacing: '-5px',
             lineHeight: 1,
           }}
