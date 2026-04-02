@@ -94,6 +94,15 @@ export const projects: Project[] = [
     tech: ['Python', 'Machine Learning', 'Streamlit'],
   },
   {
+    id: 'trading-bot',
+    title: 'Trading Bot',
+    description: 'A proprietary backtesting dashboard built to evaluate trading strategies. Fit with regime changes and features, walk-forward testing, a strategy builder using YAML, and an eval tab for an idea I have in mind. If you\'re interested, reach out and I can explain more.',
+    year: 'Mar 2025',
+    visibility: 'private',
+    image: '/trading-bot.png',
+    tech: ['Python', 'Backtesting', 'YAML'],
+  },
+  {
     id: 'pe-curriculum',
     title: 'PE Curriculum',
     description: 'Interactive private equity training platform with 12 modules, 70 lessons, and 5 interactive practice features. Built using over 15 parallelized research agents for comprehensive curriculum generation. Originally built for me, but I might as well make it public.',
