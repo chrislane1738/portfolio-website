@@ -17,7 +17,7 @@ export const projects: Project[] = [
   {
     id: 'compound-interest-calculator',
     title: 'Compound Interest Calculator',
-    description: 'Interactive tool for visualizing compound growth with configurable monthly contributions and compounding frequencies.',
+    description: 'Interactive tool for visualizing compound growth with configurable monthly contributions and compounding frequencies. My first project. A classic for every finance student.',
     year: 'Jan 2024',
     visibility: 'public',
     image: '/calculator-preview.png',
@@ -57,7 +57,7 @@ export const projects: Project[] = [
   {
     id: 'delta-fightwear',
     title: 'Delta Fightwear',
-    description: 'E-commerce brand for combat sports apparel. From supply chain to storefront.',
+    description: 'E-commerce brand for combat sports apparel. From supply chain to storefront. No longer in service.',
     year: 'Aug 2024',
     visibility: 'public',
     image: '/delta_fightwear.png',
@@ -67,7 +67,7 @@ export const projects: Project[] = [
   {
     id: 'vfc-research-dashboard',
     title: 'VFC Research Dashboard',
-    description: 'Research dashboard built for the Viking Fund Club to streamline equity analysis and team collaboration.',
+    description: 'Research dashboard built for the Viking Fund Club to streamline equity analysis and team collaboration. Originally built for my club, but gave me the inspiration for Stralane.',
     year: 'Jan 2025',
     visibility: 'public',
     image: '/vfc-card.png',
@@ -96,7 +96,7 @@ export const projects: Project[] = [
   {
     id: 'pe-curriculum',
     title: 'PE Curriculum',
-    description: 'Interactive private equity training platform with 12 modules, 70 lessons, and 5 interactive practice features. Built using over 15 parallelized research agents for comprehensive curriculum generation.',
+    description: 'Interactive private equity training platform with 12 modules, 70 lessons, and 5 interactive practice features. Built using over 15 parallelized research agents for comprehensive curriculum generation. Originally built for me, but I might as well make it public.',
     year: 'Apr 2025',
     visibility: 'public',
     image: '/pe-curriculum.png',
