@@ -14,6 +14,7 @@ const cardConfigs = [
   { top: '38%', left: '50%', anim: 'drift6', dur: '32s' },
   { top: '58%', left: '25%', anim: 'drift7', dur: '24s' },
   { top: '55%', left: '65%', anim: 'drift8', dur: '27s' },
+  { top: '75%', left: '40%', anim: 'drift1', dur: '29s' },
 ]
 
 export default function TimelineTeaser() {

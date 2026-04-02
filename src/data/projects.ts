@@ -93,4 +93,14 @@ export const projects: Project[] = [
     image: '/ufc-ml-model.png',
     tech: ['Python', 'Machine Learning', 'Streamlit'],
   },
+  {
+    id: 'pe-curriculum',
+    title: 'PE Curriculum',
+    description: 'Interactive private equity training platform with 12 modules, 70 lessons, and 5 interactive practice features. Built using over 15 parallelized research agents for comprehensive curriculum generation.',
+    year: 'Apr 2025',
+    visibility: 'public',
+    image: '/pe-curriculum.png',
+    tech: ['Next.js', 'AI Agents', 'TypeScript'],
+    link: { url: 'https://pe-curriculum.vercel.app/', label: 'Try it', external: true },
+  },
 ];

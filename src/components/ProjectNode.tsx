@@ -26,20 +26,20 @@ export default function ProjectNode({
             <img
               src={project.image}
               alt=""
-              className="w-full h-full object-cover opacity-[0.12]"
+              className="w-full h-full object-cover opacity-[0.55]"
             />
             {/* Vignette overlay — radial gradient from transparent center to dark edges */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(14,17,22,0.8) 70%, #0e1116 100%)',
+                background: 'radial-gradient(ellipse at center, transparent 60%, rgba(14,17,22,0.35) 85%, #0e1116 100%)',
               }}
             />
             {/* Bottom fade for clean blending */}
             <div
               className="absolute inset-0"
               style={{
-                background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, #0e1116 100%)',
+                background: 'linear-gradient(to bottom, transparent 0%, transparent 75%, #0e1116 100%)',
               }}
             />
           </div>
@@ -47,53 +47,56 @@ export default function ProjectNode({
 
         {/* Content */}
         <div className="relative z-10 p-6 md:p-8 min-h-[180px] flex flex-col justify-end">
-          {/* Year label */}
-          <span className="font-mono text-[10px] text-text-muted tracking-[2px]">
-            {project.year}
-          </span>
-
-          {/* Title + visibility label */}
-          <div className="flex items-center gap-3 mt-1">
-            <h3 className="font-serif text-[20px] md:text-[22px] text-white">
-              {project.title}
-            </h3>
-            <span className="font-mono text-[9px] text-accent border border-[rgba(91,164,207,0.2)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
-              {project.visibility}
+          {/* Solid text backing */}
+          <div className="bg-[rgba(8,8,8,0.85)] rounded-sm px-5 py-4 inline-block self-start max-w-lg">
+            {/* Year label */}
+            <span className="font-mono text-[10px] text-text-muted tracking-[2px]">
+              {project.year}
             </span>
-          </div>
 
-          {/* Description */}
-          <p className="font-mono text-[12px] text-text-body leading-[1.7] mt-2 max-w-lg">
-            {project.description}
-          </p>
+            {/* Title + visibility label */}
+            <div className="flex items-center gap-3 mt-1">
+              <h3 className="font-serif text-[20px] md:text-[22px] text-white">
+                {project.title}
+              </h3>
+              <span className="font-mono text-[9px] text-accent border border-[rgba(91,164,207,0.2)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
+                {project.visibility}
+              </span>
+            </div>
 
-          {/* Tech tags */}
-          {project.tech && (
-            <p className="font-mono text-[10px] text-text-muted mt-2">
-              {project.tech.join(' · ')}
+            {/* Description */}
+            <p className="font-mono text-[12px] text-text-body leading-[1.7] mt-2">
+              {project.description}
             </p>
-          )}
 
-          {/* Link */}
-          {project.link && (
-            project.link.external ? (
-              <a
-                href={project.link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
-              >
-                {project.link.label} →
-              </a>
-            ) : (
-              <Link
-                href={project.link.url}
-                className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
-              >
-                {project.link.label} →
-              </Link>
-            )
-          )}
+            {/* Tech tags */}
+            {project.tech && (
+              <p className="font-mono text-[10px] text-text-muted mt-2">
+                {project.tech.join(' · ')}
+              </p>
+            )}
+
+            {/* Link */}
+            {project.link && (
+              project.link.external ? (
+                <a
+                  href={project.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
+                >
+                  {project.link.label} →
+                </a>
+              ) : (
+                <Link
+                  href={project.link.url}
+                  className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
+                >
+                  {project.link.label} →
+                </Link>
+              )
+            )}
+          </div>
         </div>
       </div>
     </div>
