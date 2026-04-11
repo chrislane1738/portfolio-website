@@ -87,11 +87,12 @@ export const projects: Project[] = [
   {
     id: 'ufc-ml-model',
     title: 'UFC ML Prediction Model',
-    description: 'Machine learning model for predicting UFC fight outcomes using fighter statistics, historical records, and decision factors.',
+    description: 'Machine learning model for predicting UFC fight outcomes using fighter statistics, historical records, and decision factors. Bet sizing is driven by the Kelly criterion to balance edge and risk. Join the Discord to see how the strategy has been performing.',
     year: 'Mar 2025',
     visibility: 'private',
     image: '/ufc-ml-model.png',
     tech: ['Python', 'Machine Learning', 'Streamlit'],
+    link: { url: 'https://discord.gg/yjJfXaZVCm', label: 'Join Discord', external: true },
   },
   {
     id: 'trading-bot',
