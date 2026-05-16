@@ -113,4 +113,14 @@ export const projects: Project[] = [
     tech: ['Next.js', 'AI Agents', 'TypeScript'],
     link: { url: 'https://pe-curriculum.vercel.app/', label: 'Try it', external: true },
   },
+  {
+    id: 'equity-research-agents',
+    title: 'Public Equity Research Agent Team',
+    description: 'An open-source team of AI agents for end-to-end public equity research. A managing director agent orchestrates a fundamentals agent that aggregates source data and an auditing agent that checks it against SEC filings for red flags. After a user checkpoint, it dispatches five parallelized agents covering DCF, comps, macro catalysts, moat analysis, and technicals, then synthesizes everything into a full report exported as HTML, memo, or slide deck. Built to turn days of manual research on any US equity into a single run.',
+    year: 'May 2026',
+    visibility: 'public',
+    image: '/equity-research-agents.png',
+    tech: ['Claude Code', 'AI Agents', 'Equity Research'],
+    link: { url: 'https://github.com/chrislane1738/public-equity-research-team', label: 'View on GitHub', external: true },
+  },
 ];
