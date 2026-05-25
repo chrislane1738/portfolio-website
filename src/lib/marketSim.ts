@@ -23,6 +23,22 @@ export type SimState = {
   volume: number
 }
 
+function mulberry32(seed: number): () => number {
+  let s = seed >>> 0
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// Sum-of-3 uniforms => centered, bounded noise in roughly [-1, 1]
+function makeNoise(rand: () => number): () => number {
+  return () => (rand() + rand() + rand()) / 1.5 - 1
+}
+
 export type SimulatorOptions = {
   initialPrice?: number
   tickStep?: number
@@ -94,7 +110,8 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
   }
 
   let lastTickAt = -Infinity
-  const noise = opts.noise ?? (() => Math.random() * 2 - 1)
+  const rand = mulberry32(opts.seed)
+  const noise = opts.noise ?? makeNoise(rand)
   const TICK_MS = 1000
 
   function regimeMultiplier(): number {

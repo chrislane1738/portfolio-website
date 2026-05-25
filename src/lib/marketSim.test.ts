@@ -76,3 +76,40 @@ describe('candle close after 5 ticks', () => {
     expect(sim.getState().candles).toHaveLength(3)
   })
 })
+
+describe('seeded determinism', () => {
+  it('produces identical price sequences for the same seed', () => {
+    const a = createSimulator({ seed: 42 })
+    const b = createSimulator({ seed: 42 })
+    a.tick(0); b.tick(0)
+    const aPrices: number[] = []
+    const bPrices: number[] = []
+    for (let i = 1; i <= 30; i++) {
+      aPrices.push(a.tick(i * 1000).price)
+      bPrices.push(b.tick(i * 1000).price)
+    }
+    expect(aPrices).toEqual(bPrices)
+  })
+
+  it('produces different sequences for different seeds', () => {
+    const a = createSimulator({ seed: 1 })
+    const b = createSimulator({ seed: 2 })
+    a.tick(0); b.tick(0)
+    const aPrices: number[] = []
+    const bPrices: number[] = []
+    for (let i = 1; i <= 30; i++) {
+      aPrices.push(a.tick(i * 1000).price)
+      bPrices.push(b.tick(i * 1000).price)
+    }
+    expect(aPrices).not.toEqual(bPrices)
+  })
+
+  it('never produces NaN or Infinity over 1000 ticks', () => {
+    const sim = createSimulator({ seed: 7 })
+    sim.tick(0)
+    for (let i = 1; i <= 1000; i++) {
+      const p = sim.tick(i * 1000).price
+      expect(Number.isFinite(p)).toBe(true)
+    }
+  })
+})
