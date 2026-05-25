@@ -706,23 +706,19 @@ describe('volatility regimes', () => {
     let lastRegime = sim.getState().regime
     let lastFlipCandleIndex = 0
     const flips: number[] = []
-    let closedCandles = 0
-    let prevCandleCount = sim.getState().candles.length
 
     for (let i = 1; i <= 1000; i++) {
       sim.tick(i * 1000)
-      const cs = sim.getState().candles.length
-      if (cs > prevCandleCount) {
-        closedCandles += 1
-        prevCandleCount = cs
-      }
+      // Each candle is 5 ticks, so floor(i / 5) closed candles so far.
+      // Don't read off state.candles.length — it stops growing once the
+      // rolling buffer fills at candleCount.
+      const closedCandles = Math.floor(i / 5)
       if (sim.getState().regime !== lastRegime) {
         flips.push(closedCandles - lastFlipCandleIndex)
         lastFlipCandleIndex = closedCandles
         lastRegime = sim.getState().regime
       }
     }
-    // every observed regime run length should be at least 4
     for (const len of flips) expect(len).toBeGreaterThanOrEqual(4)
   })
 })
@@ -738,7 +734,8 @@ Expected: the regime tests FAIL — regime is hardcoded to `'calm'`.
 In `src/lib/marketSim.ts`, add to the closure state in `createSimulator`:
 
 ```ts
-  let regimeRemaining = 0  // candles until regime can flip
+  let regimeRemaining = 4  // candles until regime can flip; init = 4 so the
+                           // initial 'calm' regime also observes the dwell
 ```
 
 Add this helper inside `createSimulator`:
