@@ -110,11 +110,21 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     const c = state.candles[state.candles.length - 1]
     // The current candle is always pre-seeded with OHLC = open at the moment
     // it's created (the initial candle in createSimulator, subsequent candles
-    // in the candle-close push in Task 4). So advance() just extends.
+    // in the candle-close push below). So advance() just extends.
     c.h = Math.max(c.h, nextPrice)
     c.l = Math.min(c.l, nextPrice)
     c.c = nextPrice
-    state.tickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
+
+    const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
+    if (nextTickIndex === 0) {
+      // close current candle, start next
+      c.closed = true
+      state.candles.push({
+        o: c.c, h: c.c, l: c.c, c: c.c, closed: false,
+      })
+      if (state.candles.length > opts.candleCount) state.candles.shift()
+    }
+    state.tickIndex = nextTickIndex
     lastTickAt = now
   }
 

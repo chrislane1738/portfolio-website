@@ -53,3 +53,26 @@ describe('tick timing', () => {
     expect(candle.h).toBeCloseTo(candle.c)
   })
 })
+
+describe('candle close after 5 ticks', () => {
+  it('closes the current candle on the 5th tick and starts a new one', () => {
+    const sim = createSimulator({ noise: () => 0.3 })
+    sim.tick(0)
+    for (let i = 1; i <= 5; i++) sim.tick(i * 1000)
+
+    const candles = sim.getState().candles
+    expect(candles).toHaveLength(2)
+    expect(candles[0].closed).toBe(true)
+    expect(candles[1].closed).toBe(false)
+    expect(candles[1].o).toBeCloseTo(candles[0].c)
+    expect(sim.getState().tickIndex).toBe(0)
+  })
+
+  it('respects candleCount as a rolling window', () => {
+    const sim = createSimulator({ noise: () => 0.1, candleCount: 3 })
+    sim.tick(0)
+    // produce 5 complete candles (25 ticks)
+    for (let i = 1; i <= 25; i++) sim.tick(i * 1000)
+    expect(sim.getState().candles).toHaveLength(3)
+  })
+})
