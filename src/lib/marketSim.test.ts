@@ -113,3 +113,30 @@ describe('seeded determinism', () => {
     }
   })
 })
+
+describe('soft edge containment', () => {
+  it('keeps the price within halfRange of midPrice under a strong directional push', () => {
+    // Noise stuck at +1.0 would otherwise blow past halfRange in a few ticks
+    const sim = createSimulator({ noise: () => 1.0 })
+    sim.tick(0)
+    const initial = sim.getState().price
+    const halfRange = initial * 0.02
+
+    for (let i = 1; i <= 200; i++) {
+      const p = sim.tick(i * 1000).price
+      expect(p).toBeLessThanOrEqual(initial + halfRange + 0.0001)
+    }
+  })
+
+  it('keeps the price within halfRange under a strong downward push', () => {
+    const sim = createSimulator({ noise: () => -1.0 })
+    sim.tick(0)
+    const initial = sim.getState().price
+    const halfRange = initial * 0.02
+
+    for (let i = 1; i <= 200; i++) {
+      const p = sim.tick(i * 1000).price
+      expect(p).toBeGreaterThanOrEqual(initial - halfRange - 0.0001)
+    }
+  })
+})

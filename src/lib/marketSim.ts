@@ -114,14 +114,34 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
   const noise = opts.noise ?? makeNoise(rand)
   const TICK_MS = 1000
 
+  let midPrice = opts.initialPrice
+  const halfRange = opts.initialPrice * 0.02
+  const MID_EMA_ALPHA = 0.02
+
+  function meanReversionDelta(currentPrice: number, baseStep: number): number {
+    const distFromMid = (currentPrice - midPrice) / halfRange
+    const abs = Math.abs(distFromMid)
+    if (abs < 0.6) return 0
+    const pullStrength = baseStep * 4
+    const ramp = (abs - 0.6) / 0.4 // 0..1 as we go 60%..100% out
+    return -Math.sign(distFromMid) * pullStrength * ramp * abs
+  }
+
   function regimeMultiplier(): number {
     return state.regime === 'volatile' ? 4 : 1
   }
 
   function advance(now: number) {
     const baseStep = opts.initialPrice * opts.tickStep
-    const delta = noise() * baseStep * regimeMultiplier()
-    const nextPrice = state.price + delta
+    const noiseDelta = noise() * baseStep * regimeMultiplier()
+    const reversion = meanReversionDelta(state.price, baseStep)
+    let nextPrice = state.price + noiseDelta + reversion
+
+    // Hard clamp as last resort (anchored to initial price, not drifting midPrice)
+    const hardMax = opts.initialPrice + halfRange * 0.97
+    const hardMin = opts.initialPrice - halfRange * 0.97
+    if (nextPrice > hardMax) nextPrice = hardMax
+    if (nextPrice < hardMin) nextPrice = hardMin
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
@@ -134,8 +154,9 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
-      // close current candle, start next
       c.closed = true
+      // slowly drift midPrice toward recent closes
+      midPrice = midPrice * (1 - MID_EMA_ALPHA) + c.c * MID_EMA_ALPHA
       state.candles.push({
         o: c.c, h: c.c, l: c.c, c: c.c, closed: false,
       })
