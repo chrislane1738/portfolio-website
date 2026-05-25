@@ -3,6 +3,53 @@
 import { useEffect, useRef, useState } from 'react'
 import { createSimulator, type SimState } from '@/lib/marketSim'
 
+type Candle = SimState['candles'][number]
+
+function drawCandles(
+  ctx: CanvasRenderingContext2D,
+  candles: Candle[],
+  width: number,
+  height: number,
+) {
+  ctx.clearRect(0, 0, width, height)
+  if (candles.length === 0) return
+
+  // y-axis: pick range that hugs the visible candles
+  let lo = Infinity, hi = -Infinity
+  for (const c of candles) {
+    if (c.l < lo) lo = c.l
+    if (c.h > hi) hi = c.h
+  }
+  if (lo === hi) { lo -= 1; hi += 1 }
+  const pad = (hi - lo) * 0.1
+  lo -= pad; hi += pad
+
+  const yOf = (price: number) =>
+    height - ((price - lo) / (hi - lo)) * height
+
+  const slot = width / candles.length
+  const bodyW = Math.max(2, slot - 2)
+
+  for (let i = 0; i < candles.length; i++) {
+    const c = candles[i]
+    const x = i * slot + (slot - bodyW) / 2
+    const isUp = c.c >= c.o
+    const color = isUp ? '#5ba4cf' : '#c97064'
+    // fade leftmost candles
+    const fadeIn = Math.min(1, i / 6)
+    ctx.globalAlpha = fadeIn * (i === candles.length - 1 ? 0.85 : 0.55)
+
+    // wick
+    ctx.fillStyle = color
+    ctx.fillRect(x + bodyW / 2 - 0.5, yOf(c.h), 1, yOf(c.l) - yOf(c.h))
+    // body
+    const bodyTop = yOf(Math.max(c.o, c.c))
+    const bodyBot = yOf(Math.min(c.o, c.c))
+    ctx.fillRect(x, bodyTop, bodyW, Math.max(1, bodyBot - bodyTop))
+  }
+  ctx.globalAlpha = 1
+}
+
 function formatPrice(p: number) {
   return `$${p.toFixed(2)}`
 }
@@ -19,6 +66,9 @@ export default function MarketHero() {
   const [state, setState] = useState<SimState | null>(null)
   const [now, setNow] = useState<string>(formatTime())
 
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const rafRef = useRef<number>(0)
+
   if (!simRef.current) {
     const sim = createSimulator({ initialPrice: 412.50 })
     sim.pregenerate(24)
@@ -28,8 +78,52 @@ export default function MarketHero() {
   useEffect(() => {
     if (!simRef.current) return
     setState(simRef.current.getState())
-    const id = setInterval(() => setNow(formatTime()), 30000)
-    return () => clearInterval(id)
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const fit = () => {
+      const dpr = window.devicePixelRatio || 1
+      const rect = canvas.getBoundingClientRect()
+      canvas.width = Math.floor(rect.width * dpr)
+      canvas.height = Math.floor(rect.height * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+    fit()
+    window.addEventListener('resize', fit)
+
+    let lastPrice = simRef.current.getState().price
+    let lastTickIndex = simRef.current.getState().tickIndex
+
+    const loop = (t: number) => {
+      const next = simRef.current!.tick(t)
+
+      // Only call setState when the simulator actually advanced (~1Hz). React
+      // renders the strips + ladders at sim tick frequency, not every frame.
+      if (next.price !== lastPrice || next.tickIndex !== lastTickIndex) {
+        setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+        lastPrice = next.price
+        lastTickIndex = next.tickIndex
+      }
+
+      // Canvas redraws every frame to support smooth wick interpolation (Task 15
+      // refines this). Reading the live candle array directly is safe — the
+      // simulator mutates in place and we only read.
+      const rect = canvas.getBoundingClientRect()
+      drawCandles(ctx, next.candles, rect.width, rect.height)
+      rafRef.current = requestAnimationFrame(loop)
+    }
+    rafRef.current = requestAnimationFrame(loop)
+
+    const timeId = setInterval(() => setNow(formatTime()), 30000)
+
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      window.removeEventListener('resize', fit)
+      clearInterval(timeId)
+    }
   }, [])
 
   const s = state ?? simRef.current!.getState()
@@ -67,6 +161,14 @@ export default function MarketHero() {
           backgroundSize: '32px 32px',
           opacity: 0.6,
         }}
+      />
+
+      {/* Chart canvas */}
+      <canvas
+        ref={canvasRef}
+        className="absolute top-9 bottom-9 left-[22%] right-[22%] z-[1] pointer-events-none"
+        style={{ width: '56%', height: 'calc(100% - 4.5rem)' }}
+        aria-hidden="true"
       />
 
       {/* Center column */}
