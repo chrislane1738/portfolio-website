@@ -322,13 +322,12 @@ In `src/lib/marketSim.ts`, replace the closure body with a real implementation. 
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
     state.tickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     lastTickAt = now
   }
@@ -415,13 +414,12 @@ In `src/lib/marketSim.ts`, modify `advance(now)` so that when `tickIndex` rolls 
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
@@ -636,13 +634,12 @@ Then replace the `advance` function with:
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
@@ -1039,13 +1036,12 @@ Wait — by this point `state.price` has already been updated to `nextPrice`. Ca
     state.price = nextPrice
 
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
     recenterBook()
     applyAbsorptionsAndTouched(prevPrice, nextPrice, now)
 
