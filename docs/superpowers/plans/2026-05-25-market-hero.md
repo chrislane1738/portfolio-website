@@ -1381,9 +1381,9 @@ In `src/components/MarketHero.tsx`, add this just before the closing `</section>
       {/* Bids ladder (left) */}
       <ul className="absolute top-9 bottom-9 left-0 w-[22%] z-10 flex flex-col items-end px-3 py-3 m-0 list-none"
           aria-hidden="true">
-        {s.bids.map((lvl) => (
+        {s.bids.map((lvl, i) => (
           <li
-            key={`b-${lvl.price.toFixed(2)}`}
+            key={`b-${i}`}
             className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-bid ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
           >
             <span
@@ -1399,9 +1399,9 @@ In `src/components/MarketHero.tsx`, add this just before the closing `</section>
       {/* Asks ladder (right) */}
       <ul className="absolute top-9 bottom-9 right-0 w-[22%] z-10 flex flex-col items-start px-3 py-3 m-0 list-none"
           aria-hidden="true">
-        {s.asks.map((lvl) => (
+        {s.asks.map((lvl, i) => (
           <li
-            key={`a-${lvl.price.toFixed(2)}`}
+            key={`a-${i}`}
             className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
           >
             <span
