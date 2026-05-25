@@ -73,3 +73,25 @@ main {
   animation: modalFadeIn 0.25s ease-out;
 }
 
+/* Order book rows */
+.book-row {
+  opacity: 0.45;
+  transition: opacity 200ms ease-out;
+}
+.book-row.is-touched {
+  opacity: 0.65;
+}
+.book-row.is-flashing {
+  opacity: 0.85;
+}
+.book-bar {
+  background: rgba(91,164,207,0.10);
+  border-radius: 1px;
+  transition: width 600ms ease-out;
+}
+.book-bar-ask {
+  background: rgba(201,112,100,0.10);
+}
+.book-row.is-touched .book-bar { background: rgba(91,164,207,0.22); }
+.book-row.is-touched .book-bar-ask { background: rgba(201,112,100,0.22); }
+

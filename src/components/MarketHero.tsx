@@ -91,6 +91,42 @@ export default function MarketHero() {
         <span className="text-text-body">scroll ↓</span>
         <span>SESSION ALIVE</span>
       </div>
+
+      {/* Bids ladder (left) */}
+      <ul className="absolute top-9 bottom-9 left-0 w-[22%] z-10 flex flex-col items-end px-3 py-3 m-0 list-none"
+          aria-hidden="true">
+        {s.bids.map((lvl, i) => (
+          <li
+            key={`b-${i}`}
+            className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-bid ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
+          >
+            <span
+              className="absolute inset-y-0 left-0 -z-10 book-bar"
+              style={{ width: `${lvl.widthPct * 100}%` }}
+            />
+            <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
+            <span className="text-accent">{lvl.price.toFixed(2)}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Asks ladder (right) */}
+      <ul className="absolute top-9 bottom-9 right-0 w-[22%] z-10 flex flex-col items-start px-3 py-3 m-0 list-none"
+          aria-hidden="true">
+        {s.asks.map((lvl, i) => (
+          <li
+            key={`a-${i}`}
+            className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
+          >
+            <span
+              className="absolute inset-y-0 right-0 -z-10 book-bar book-bar-ask"
+              style={{ width: `${lvl.widthPct * 100}%` }}
+            />
+            <span className="text-[#c97064]">{lvl.price.toFixed(2)}</span>
+            <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
