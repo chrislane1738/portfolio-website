@@ -111,8 +111,11 @@ else:
   // that at |distFromMid| = 1.0 the pull is ~4× a typical noise tick, which
   // dominates within 1-2 ticks. Adjust during implementation.
 
-if |currentPrice - midPrice| > 0.97 * halfRange:
-  clamp price to midPrice ± 0.97 * halfRange   // hard wall as last resort
+if |currentPrice - initialPrice| > 0.97 * halfRange:
+  clamp price to initialPrice ± 0.97 * halfRange   // hard wall as last resort
+  // Anchored to initialPrice (not midPrice) so the wall doesn't drift with
+  // midPrice. Under realistic noise this is equivalent; under pathological
+  // constant-direction noise it provides a fixed safety bound.
 ```
 
 The visible result: a chart that respects "support and resistance" naturally and never escapes the rendered band.

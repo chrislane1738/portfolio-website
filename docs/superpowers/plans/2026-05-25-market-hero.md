@@ -626,9 +626,11 @@ Then replace the `advance` function with:
     const reversion = meanReversionDelta(state.price, baseStep)
     let nextPrice = state.price + noiseDelta + reversion
 
-    // Hard clamp as last resort
-    const hardMax = midPrice + halfRange * 0.97
-    const hardMin = midPrice - halfRange * 0.97
+    // Hard clamp as last resort — anchored to initialPrice so the wall
+    // doesn't drift with midPrice. Under realistic noise midPrice barely
+    // moves so this matters only in pathological constant-direction cases.
+    const hardMax = opts.initialPrice + halfRange * 0.97
+    const hardMin = opts.initialPrice - halfRange * 0.97
     if (nextPrice > hardMax) nextPrice = hardMax
     if (nextPrice < hardMin) nextPrice = hardMin
 
