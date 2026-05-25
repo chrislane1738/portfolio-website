@@ -108,14 +108,12 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0 && c.o === 0) {
-      // New candle seeded by Task 4 – initialize all OHLC to first traded price
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
     state.tickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     lastTickAt = now
   }
