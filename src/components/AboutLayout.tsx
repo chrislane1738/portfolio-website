@@ -26,7 +26,7 @@ export default function AboutLayout() {
 
   return (
     <div className="max-w-[900px] mx-auto">
-      <div className="flex flex-col md:flex-row gap-12 md:gap-16">
+      <div className="flex flex-col md:flex-row md:items-center gap-12 md:gap-16">
         {/* Photo — left column */}
         <div className="md:w-[40%] shrink-0">
           <div className="relative border border-accent-dim overflow-hidden">
