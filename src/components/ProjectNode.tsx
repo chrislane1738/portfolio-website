@@ -4,9 +4,11 @@ import type { Project } from '@/data/projects'
 export default function ProjectNode({
   project,
   index,
+  onExpand,
 }: {
   project: Project
   index: number
+  onExpand?: () => void
 }) {
   const offset = index % 2 === 1 ? 'ml-6' : 'ml-0'
 
@@ -18,8 +20,43 @@ export default function ProjectNode({
         style={{ left: '-11.5px', top: '8px' }}
       />
 
+      {/* Favorite star */}
+      {project.favorite && (
+        <div
+          className="absolute text-accent"
+          style={{ left: '-40px', top: '2px' }}
+          aria-label="Favorite project"
+          title="Favorite"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            style={{ filter: 'drop-shadow(0 0 6px rgba(91,164,207,0.5))' }}
+          >
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </div>
+      )}
+
       {/* Card with background image */}
-      <div className="relative overflow-hidden rounded-sm border border-[rgba(255,255,255,0.04)] hover:border-[rgba(255,255,255,0.08)] transition-colors duration-300">
+      <div
+        onClick={onExpand}
+        role={onExpand ? 'button' : undefined}
+        tabIndex={onExpand ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (onExpand && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            onExpand()
+          }
+        }}
+        className="group relative overflow-hidden rounded-sm border border-[rgba(255,255,255,0.04)] hover:border-[rgba(91,164,207,0.25)] transition-colors duration-300 cursor-pointer"
+      >
         {/* Faded background image with vignette */}
         {project.image && (
           <div className="absolute inset-0 z-0">
@@ -44,6 +81,14 @@ export default function ProjectNode({
             />
           </div>
         )}
+
+        {/* Expand hint */}
+        <span className="absolute top-3 right-3 z-20 font-mono text-[9px] text-text-body opacity-0 group-hover:opacity-100 tracking-[2px] uppercase transition-opacity duration-300 pointer-events-none flex items-center gap-1">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9V13H7M13 7V3H9M3 13L7 9M13 3L9 7" />
+          </svg>
+          Expand
+        </span>
 
         {/* Content */}
         <div className="relative z-10 p-6 md:p-8 min-h-[180px] flex flex-col justify-end">
@@ -83,6 +128,7 @@ export default function ProjectNode({
                   href={project.link.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
                 >
                   {project.link.label} →
@@ -90,6 +136,7 @@ export default function ProjectNode({
               ) : (
                 <Link
                   href={project.link.url}
+                  onClick={(e) => e.stopPropagation()}
                   className="inline-block font-mono text-[11px] text-accent hover:text-white transition-colors duration-300 mt-3"
                 >
                   {project.link.label} →

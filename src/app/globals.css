@@ -63,3 +63,13 @@ main {
   animation: floating 20s ease-in-out infinite;
 }
 
+/* Project modal fade-in */
+@keyframes modalFadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.modal-fade-in {
+  animation: modalFadeIn 0.25s ease-out;
+}
+

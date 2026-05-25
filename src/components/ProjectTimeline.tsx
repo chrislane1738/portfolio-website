@@ -1,11 +1,20 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { projects } from '@/data/projects'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { projects, type Project } from '@/data/projects'
 import ProjectNode from './ProjectNode'
+import ProjectModal from './ProjectModal'
+import FavoritesFilterButton from './FavoritesFilterButton'
 
 export default function ProjectTimeline() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+
+  const visibleProjects = useMemo(
+    () => (favoritesOnly ? projects.filter((p) => p.favorite) : projects),
+    [favoritesOnly]
+  )
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -15,7 +24,6 @@ export default function ProjectTimeline() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible')
-            // Activate the timeline node dot
             const node = entry.target.querySelector('.timeline-node')
             if (node) node.classList.add('active')
           }
@@ -28,18 +36,33 @@ export default function ProjectTimeline() {
     reveals.forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [])
+  }, [visibleProjects])
 
   return (
-    <div ref={containerRef}>
-      {/* Timeline line container */}
-      <div className="relative ml-[5%] md:ml-[15%] pl-8">
-        <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-accent opacity-30" />
+    <>
+      <FavoritesFilterButton
+        active={favoritesOnly}
+        onToggle={() => setFavoritesOnly((v) => !v)}
+      />
+      <div ref={containerRef}>
+        {/* Timeline line container */}
+        <div className="relative ml-[5%] md:ml-[15%] pl-8">
+          <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-accent opacity-30" />
 
-        {projects.map((project, index) => (
-          <ProjectNode key={project.id} project={project} index={index} />
-        ))}
+          {visibleProjects.map((project, index) => (
+            <ProjectNode
+              key={project.id}
+              project={project}
+              index={index}
+              onExpand={() => setSelectedProject(project)}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+      <ProjectModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
+    </>
   )
 }

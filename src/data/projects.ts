@@ -6,6 +6,7 @@ export interface Project {
   visibility: 'public' | 'private';
   image?: string;
   tech?: string[];
+  favorite?: boolean;
   link?: {
     url: string;
     label: string;
@@ -22,6 +23,7 @@ export const projects: Project[] = [
     visibility: 'public',
     image: '/calculator-preview.png',
     tech: ['Next.js', 'Chart.js', 'TypeScript'],
+    favorite: true,
     link: { url: '/calculator', label: 'Try it', external: false },
   },
   {
@@ -52,6 +54,7 @@ export const projects: Project[] = [
     visibility: 'public',
     image: '/Portfolio-builder.png',
     tech: ['Python', 'Streamlit'],
+    favorite: true,
     link: { url: 'https://personalanalytics-juf6xlhx6valr7qpabuupu.streamlit.app/', label: 'View', external: true },
   },
   {
@@ -72,6 +75,7 @@ export const projects: Project[] = [
     visibility: 'public',
     image: '/vfc-card.png',
     tech: ['Python', 'Streamlit'],
+    favorite: true,
     link: { url: 'https://vikingfunddashboard.streamlit.app/', label: 'View', external: true },
   },
   {
@@ -82,6 +86,7 @@ export const projects: Project[] = [
     visibility: 'private',
     image: '/stralane-screenshot.png',
     tech: ['In Development'],
+    favorite: true,
     link: { url: 'https://stralane.com', label: 'Visit', external: true },
   },
   {
@@ -92,6 +97,7 @@ export const projects: Project[] = [
     visibility: 'private',
     image: '/ufc-ml-model.png',
     tech: ['Python', 'Machine Learning', 'Streamlit'],
+    favorite: true,
     link: { url: 'https://discord.gg/yjJfXaZVCm', label: 'Join Discord', external: true },
   },
   {
@@ -121,6 +127,16 @@ export const projects: Project[] = [
     visibility: 'public',
     image: '/equity-research-agents.png',
     tech: ['Claude Code', 'AI Agents', 'Equity Research'],
+    favorite: true,
     link: { url: 'https://github.com/chrislane1738/public-equity-research-team', label: 'View on GitHub', external: true },
+  },
+  {
+    id: 'ib-daily-question',
+    title: 'IB Daily Question',
+    description: 'A daily IB question sent to me in order to sharpen my fundamentals and knowledge. While I\'m not prepping for IB interviews, it\'s good for my general finance fundamentals. I\'m also considering turning it into an app on iOS to gain the experience, but that is TBD.',
+    year: 'May 2026',
+    visibility: 'private',
+    image: '/ib-daily-question.png',
+    tech: ['Telegram Bot', 'Finance', 'iOS (TBD)'],
   },
 ];
