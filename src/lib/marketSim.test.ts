@@ -178,3 +178,28 @@ describe('volatility regimes', () => {
     for (const len of flips) expect(len).toBeGreaterThanOrEqual(4)
   })
 })
+
+describe('order book recentering', () => {
+  it('keeps bestBid = price - spread/2 and bestAsk = price + spread/2 after each tick', () => {
+    const sim = createSimulator({ seed: 11 })
+    sim.tick(0)
+    for (let i = 1; i <= 30; i++) {
+      const s = sim.tick(i * 1000)
+      expect(s.bestBid).toBeCloseTo(s.price - s.spread / 2, 4)
+      expect(s.bestAsk).toBeCloseTo(s.price + s.spread / 2, 4)
+      expect(s.bids[0].price).toBeCloseTo(s.bestBid, 4)
+      expect(s.asks[0].price).toBeCloseTo(s.bestAsk, 4)
+    }
+  })
+
+  it('widens the spread during volatile regimes', () => {
+    const sim = createSimulator({ seed: 3 })
+    sim.tick(0)
+    let sawWiderSpread = false
+    for (let i = 1; i <= 600; i++) {
+      const s = sim.tick(i * 1000)
+      if (s.regime === 'volatile' && s.spread > 0.05) sawWiderSpread = true
+    }
+    expect(sawWiderSpread).toBe(true)
+  })
+})

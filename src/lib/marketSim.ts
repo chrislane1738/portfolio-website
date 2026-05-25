@@ -147,6 +147,22 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     regimeRemaining = 4 + Math.floor(rand() * 7)
   }
 
+  function recenterBook() {
+    const baseSpread = opts.bookIncrement
+    const volatileSpread = baseSpread * 2 + rand() * baseSpread // 2x..3x
+    state.spread = state.regime === 'volatile' ? volatileSpread : baseSpread
+
+    state.bestBid = state.price - state.spread / 2
+    state.bestAsk = state.price + state.spread / 2
+
+    for (let i = 0; i < state.bids.length; i++) {
+      state.bids[i].price = state.bestBid - i * opts.bookIncrement
+    }
+    for (let i = 0; i < state.asks.length; i++) {
+      state.asks[i].price = state.bestAsk + i * opts.bookIncrement
+    }
+  }
+
   function advance(now: number) {
     const baseStep = opts.initialPrice * opts.tickStep
     const noiseDelta = noise() * baseStep * regimeMultiplier()
@@ -167,6 +183,8 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     c.h = Math.max(c.h, nextPrice)
     c.l = Math.min(c.l, nextPrice)
     c.c = nextPrice
+
+    recenterBook()
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
