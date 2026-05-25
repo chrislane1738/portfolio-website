@@ -203,3 +203,36 @@ describe('order book recentering', () => {
     expect(sawWiderSpread).toBe(true)
   })
 })
+
+describe('book absorption', () => {
+  it('marks a flashUntil on a level whose price the tick crossed', () => {
+    // Force a big upward move that will pierce at least one ask level
+    const sim = createSimulator({ noise: () => 1.0, seed: 1 })
+    sim.tick(0)
+    const before = sim.getState()
+    const initialAskPrices = before.asks.map(a => a.price)
+    sim.tick(1000)
+
+    // Some level whose price was crossed should have flashUntil set
+    const anyFlash = sim.getState().asks.some(a => a.flashUntil > 0)
+      || sim.getState().bids.some(b => b.flashUntil > 0)
+    expect(anyFlash).toBe(true)
+  })
+
+  it('refills a flashed level with a fresh random size after the flash window', () => {
+    const sim = createSimulator({ noise: () => 1.0, seed: 5 })
+    sim.tick(0)
+    sim.tick(1000)
+    const flashedLevel = sim.getState().asks.find(a => a.flashUntil > 0)
+    if (!flashedLevel) throw new Error('no flashed level')
+    const sizeBefore = flashedLevel.size
+    // Tick again past the flash window
+    sim.tick(2000)
+    // 2000 - 1000 = 1000ms elapsed, flashUntil was 1000 + 600 = 1600
+    // so by now=2000 the refill should have run
+    const refilled = sim.getState().asks.find(a => a.price === flashedLevel.price)
+    expect(refilled).toBeTruthy()
+    expect(refilled!.size).toBeGreaterThanOrEqual(5000)
+    expect(refilled!.size).toBeLessThanOrEqual(25000)
+  })
+})

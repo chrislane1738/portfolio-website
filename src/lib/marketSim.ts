@@ -64,31 +64,43 @@ const DEFAULT_OPTS = {
   seed: 1,
 }
 
-function makeInitialBook(price: number, levels: number, increment: number) {
+function makeInitialBook(price: number, levels: number, increment: number, rand: () => number) {
   const spread = increment
   const bestBid = price - spread / 2
   const bestAsk = price + spread / 2
 
-  const mkLevel = (p: number): BookLevel => ({
-    price: p,
-    size: 12000,
-    widthPct: 0.6,
-    touched: false,
-    flashUntil: 0,
-  })
-
   const bids: BookLevel[] = []
   const asks: BookLevel[] = []
   for (let i = 0; i < levels; i++) {
-    bids.push(mkLevel(bestBid - i * increment))
-    asks.push(mkLevel(bestAsk + i * increment))
+    bids.push({
+      price: bestBid - i * increment,
+      size: Math.floor(5000 + rand() * 20000),
+      widthPct: 0,
+      touched: false,
+      flashUntil: 0,
+    })
+    asks.push({
+      price: bestAsk + i * increment,
+      size: Math.floor(5000 + rand() * 20000),
+      widthPct: 0,
+      touched: false,
+      flashUntil: 0,
+    })
   }
+  // initial widthPct
+  const maxBid = Math.max(...bids.map(b => b.size), 1)
+  for (const b of bids) b.widthPct = b.size / maxBid
+  const maxAsk = Math.max(...asks.map(a => a.size), 1)
+  for (const a of asks) a.widthPct = a.size / maxAsk
+
   return { bids, asks, bestBid, bestAsk, spread }
 }
 
 export function createSimulator(options: SimulatorOptions = {}): Simulator {
   const opts = { ...DEFAULT_OPTS, ...options }
-  const book = makeInitialBook(opts.initialPrice, opts.bookLevels, opts.bookIncrement)
+  const rand = mulberry32(opts.seed)
+  const noise = opts.noise ?? makeNoise(rand)
+  const book = makeInitialBook(opts.initialPrice, opts.bookLevels, opts.bookIncrement, rand)
 
   const state: SimState = {
     candles: [{
@@ -110,8 +122,6 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
   }
 
   let lastTickAt = -Infinity
-  const rand = mulberry32(opts.seed)
-  const noise = opts.noise ?? makeNoise(rand)
   let regimeRemaining = 4  // candles until regime can flip (initial dwell ≥ 4)
   const TICK_MS = 1000
 
@@ -147,6 +157,42 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     regimeRemaining = 4 + Math.floor(rand() * 7)
   }
 
+  const FLASH_DURATION = 600
+
+  function randomSize(): number {
+    return Math.floor(5000 + rand() * 20000)
+  }
+
+  function applyAbsorptionsAndTouched(prevPrice: number, currPrice: number, now: number) {
+    const lo = Math.min(prevPrice, currPrice)
+    const hi = Math.max(prevPrice, currPrice)
+
+    const allLevels = [...state.bids, ...state.asks]
+    for (const lvl of allLevels) {
+      // 1. refill if past flash window
+      if (lvl.flashUntil > 0 && now >= lvl.flashUntil) {
+        lvl.size = randomSize()
+        lvl.flashUntil = 0
+      }
+      // 2. set flash if pierced
+      if (lvl.price >= lo && lvl.price <= hi) {
+        lvl.flashUntil = now + FLASH_DURATION
+      }
+    }
+
+    // 3. mark "touched" for the level immediately adjacent to current price
+    for (const b of state.bids) b.touched = false
+    for (const a of state.asks) a.touched = false
+    if (state.bids[0]) state.bids[0].touched = true
+    if (state.asks[0]) state.asks[0].touched = true
+
+    // 4. recompute widthPct from sizes per side
+    const maxBid = Math.max(...state.bids.map(b => b.size), 1)
+    for (const b of state.bids) b.widthPct = b.size / maxBid
+    const maxAsk = Math.max(...state.asks.map(a => a.size), 1)
+    for (const a of state.asks) a.widthPct = a.size / maxAsk
+  }
+
   function recenterBook() {
     const baseSpread = opts.bookIncrement
     const volatileSpread = baseSpread * 2 + rand() * baseSpread // 2x..3x
@@ -169,21 +215,24 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     const reversion = meanReversionDelta(state.price, baseStep)
     let nextPrice = state.price + noiseDelta + reversion
 
-    // Hard clamp as last resort (anchored to initial price, not drifting midPrice)
+    // Hard clamp as last resort — anchored to initialPrice so the wall
+    // doesn't drift with midPrice. Under realistic noise midPrice barely
+    // moves so this matters only in pathological constant-direction cases.
     const hardMax = opts.initialPrice + halfRange * 0.97
     const hardMin = opts.initialPrice - halfRange * 0.97
     if (nextPrice > hardMax) nextPrice = hardMax
     if (nextPrice < hardMin) nextPrice = hardMin
 
+    const prevPrice = state.price
     state.price = nextPrice
+
     const c = state.candles[state.candles.length - 1]
     // The current candle is always pre-seeded with OHLC = open at the moment
-    // it's created (the initial candle in createSimulator, subsequent candles
-    // in the candle-close push below). So advance() just extends.
+    // it's created. So advance() just extends.
     c.h = Math.max(c.h, nextPrice)
     c.l = Math.min(c.l, nextPrice)
     c.c = nextPrice
-
+    applyAbsorptionsAndTouched(prevPrice, nextPrice, now)
     recenterBook()
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
