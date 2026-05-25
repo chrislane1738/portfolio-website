@@ -1,8 +1,61 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import { createSimulator, type SimState } from '@/lib/marketSim'
+
+function formatPrice(p: number) {
+  return `$${p.toFixed(2)}`
+}
+
+function formatTime() {
+  const d = new Date()
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm} ET`
+}
+
 export default function MarketHero() {
+  const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
+  const [state, setState] = useState<SimState | null>(null)
+  const [now, setNow] = useState<string>(formatTime())
+
+  if (!simRef.current) {
+    const sim = createSimulator({ initialPrice: 412.50 })
+    sim.pregenerate(24)
+    simRef.current = sim
+  }
+
+  useEffect(() => {
+    if (!simRef.current) return
+    setState(simRef.current.getState())
+    const id = setInterval(() => setNow(formatTime()), 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  const s = state ?? simRef.current!.getState()
+  const initial = 412.50
+  const deltaPct = ((s.price - initial) / initial) * 100
+
   return (
     <section className="relative h-screen bg-bg-deep overflow-hidden">
+      {/* Top strip */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
+           aria-hidden="true">
+        <span>
+          CL <span className="text-accent normal-case">{formatPrice(s.price)}</span>{' '}
+          <span className={deltaPct >= 0 ? 'text-accent' : 'text-[#c97064]'}>
+            {deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(2)}%
+          </span>
+        </span>
+        <span className="text-text-muted tracking-[1px] normal-case">
+          Spread {s.spread.toFixed(2)} · Mid {((s.bestBid + s.bestAsk) / 2).toFixed(2)}
+        </span>
+        <span className="flex items-center gap-2">
+          {now}
+          <span className="inline-block w-[6px] h-[6px] rounded-full bg-accent live-pip" />
+        </span>
+      </div>
+
       {/* Grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -16,7 +69,7 @@ export default function MarketHero() {
         }}
       />
 
-      {/* Center column — name + tagline + line + intro */}
+      {/* Center column */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4">
         <h1 className="font-serif text-[32px] md:text-[40px] text-white tracking-[1px]">
           Chris Lane
@@ -29,6 +82,14 @@ export default function MarketHero() {
           A finance student and operator who believes in learning by doing.
           Building tools, leading teams, and turning ideas into products.
         </p>
+      </div>
+
+      {/* Bottom strip */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[9px] uppercase tracking-[2px] text-text-muted border-t border-[rgba(255,255,255,0.04)] font-mono"
+           aria-hidden="true">
+        <span>LAST {formatPrice(s.price)} · Spread {s.spread.toFixed(2)}</span>
+        <span className="text-text-body">scroll ↓</span>
+        <span>SESSION ALIVE</span>
       </div>
     </section>
   )
