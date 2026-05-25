@@ -140,3 +140,41 @@ describe('soft edge containment', () => {
     }
   })
 })
+
+describe('volatility regimes', () => {
+  it('starts in a calm regime', () => {
+    const sim = createSimulator({ seed: 3 })
+    expect(sim.getState().regime).toBe('calm')
+  })
+
+  it('transitions regimes over a long run and visits both', () => {
+    const sim = createSimulator({ seed: 3 })
+    sim.tick(0)
+    const observed = new Set<string>()
+    for (let i = 1; i <= 600; i++) {
+      observed.add(sim.tick(i * 1000).regime)
+    }
+    expect(observed.has('calm')).toBe(true)
+    expect(observed.has('volatile')).toBe(true)
+  })
+
+  it('keeps a regime for at least 4 closed candles in a row', () => {
+    const sim = createSimulator({ seed: 9 })
+    sim.tick(0)
+    let lastRegime = sim.getState().regime
+    let lastFlipCandleIndex = 0
+    const flips: number[] = []
+
+    for (let i = 1; i <= 1000; i++) {
+      sim.tick(i * 1000)
+      // Each candle is 5 ticks, so floor(i / 5) closed candles so far
+      const closedCandles = Math.floor(i / 5)
+      if (sim.getState().regime !== lastRegime) {
+        flips.push(closedCandles - lastFlipCandleIndex)
+        lastFlipCandleIndex = closedCandles
+        lastRegime = sim.getState().regime
+      }
+    }
+    for (const len of flips) expect(len).toBeGreaterThanOrEqual(4)
+  })
+})

@@ -112,6 +112,7 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
   let lastTickAt = -Infinity
   const rand = mulberry32(opts.seed)
   const noise = opts.noise ?? makeNoise(rand)
+  let regimeRemaining = 4  // candles until regime can flip (initial dwell ≥ 4)
   const TICK_MS = 1000
 
   let midPrice = opts.initialPrice
@@ -129,6 +130,21 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
 
   function regimeMultiplier(): number {
     return state.regime === 'volatile' ? 4 : 1
+  }
+
+  function maybeRollRegime() {
+    if (regimeRemaining > 0) {
+      regimeRemaining -= 1
+      return
+    }
+    const r = rand()
+    if (state.regime === 'calm') {
+      state.regime = r < 0.35 ? 'volatile' : 'calm'
+    } else {
+      state.regime = r < 0.35 ? 'calm' : 'volatile'
+    }
+    // new regime lasts 4-10 candles
+    regimeRemaining = 4 + Math.floor(rand() * 7)
   }
 
   function advance(now: number) {
@@ -155,8 +171,8 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
       c.closed = true
-      // slowly drift midPrice toward recent closes
       midPrice = midPrice * (1 - MID_EMA_ALPHA) + c.c * MID_EMA_ALPHA
+      maybeRollRegime()
       state.candles.push({
         o: c.c, h: c.c, l: c.c, c: c.c, closed: false,
       })
