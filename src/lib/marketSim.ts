@@ -93,9 +93,45 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     volume: 0,
   }
 
+  let lastTickAt = -Infinity
+  const noise = opts.noise ?? (() => Math.random() * 2 - 1)
+  const TICK_MS = 1000
+
+  function regimeMultiplier(): number {
+    return state.regime === 'volatile' ? 4 : 1
+  }
+
+  function advance(now: number) {
+    const baseStep = opts.initialPrice * opts.tickStep
+    const delta = noise() * baseStep * regimeMultiplier()
+    const nextPrice = state.price + delta
+
+    state.price = nextPrice
+    const c = state.candles[state.candles.length - 1]
+    if (state.tickIndex === 0 && c.o === 0) {
+      // New candle seeded by Task 4 – initialize all OHLC to first traded price
+      c.o = c.h = c.l = c.c = nextPrice
+    } else {
+      c.h = Math.max(c.h, nextPrice)
+      c.l = Math.min(c.l, nextPrice)
+      c.c = nextPrice
+    }
+    state.tickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
+    lastTickAt = now
+  }
+
   return {
     getState: () => state,
-    tick: () => state,           // implemented in later tasks
-    pregenerate: () => {},        // implemented in later tasks
+    tick(now: number) {
+      if (lastTickAt === -Infinity) {
+        // First call seeds the clock without advancing
+        lastTickAt = now
+        return state
+      }
+      if (now - lastTickAt < TICK_MS) return state
+      advance(now)
+      return state
+    },
+    pregenerate: () => {},
   }
 }

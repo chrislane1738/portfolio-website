@@ -26,3 +26,30 @@ describe('createSimulator', () => {
     expect(sim.getState().price).toBeCloseTo(100)
   })
 })
+
+describe('tick timing', () => {
+  it('does not advance when less than 1000ms has elapsed', () => {
+    const sim = createSimulator({ noise: () => 0.5 })
+    const t0 = sim.tick(0).price
+    const t1 = sim.tick(500).price
+    expect(t1).toBeCloseTo(t0)
+  })
+
+  it('advances the price after 1000ms has elapsed', () => {
+    const sim = createSimulator({ noise: () => 0.5 })
+    sim.tick(0)
+    const moved = sim.tick(1000).price
+    expect(moved).not.toBeCloseTo(412.50)
+    // positive noise => positive move
+    expect(moved).toBeGreaterThan(412.50)
+  })
+
+  it('extends the current candle high/low/close on a tick', () => {
+    const sim = createSimulator({ noise: () => 0.5 })
+    sim.tick(0)
+    sim.tick(1000)
+    const candle = sim.getState().candles[0]
+    expect(candle.c).toBeGreaterThan(candle.o)
+    expect(candle.h).toBeCloseTo(candle.c)
+  })
+})
