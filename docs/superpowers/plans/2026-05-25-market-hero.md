@@ -1041,8 +1041,12 @@ Wait — by this point `state.price` has already been updated to `nextPrice`. Ca
     c.h = Math.max(c.h, nextPrice)
     c.l = Math.min(c.l, nextPrice)
     c.c = nextPrice
-    recenterBook()
+    // Absorption detection MUST run before recenterBook(): we need the
+    // pre-recenter book prices so piercings (price crossing through old
+    // levels) are detectable. After recenter, all new ask prices are above
+    // the new mid and all new bid prices below, so nothing would ever pierce.
     applyAbsorptionsAndTouched(prevPrice, nextPrice, now)
+    recenterBook()
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
