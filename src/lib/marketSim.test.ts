@@ -236,3 +236,22 @@ describe('book absorption', () => {
     expect(refilled!.size).toBeLessThanOrEqual(25000)
   })
 })
+
+describe('pregenerate', () => {
+  it('produces N closed candles after pregenerate(N)', () => {
+    const sim = createSimulator({ seed: 17 })
+    sim.pregenerate(10)
+    const state = sim.getState()
+    const closed = state.candles.filter(c => c.closed).length
+    expect(closed).toBeGreaterThanOrEqual(10)
+  })
+
+  it('does not advance the wall clock — subsequent tick(0) does not move price', () => {
+    const sim = createSimulator({ seed: 17 })
+    sim.pregenerate(10)
+    const before = sim.getState().price
+    // After pregenerate, calling tick at t=0 should seed the clock without advancing
+    const after = sim.tick(0).price
+    expect(after).toBeCloseTo(before)
+  })
+})

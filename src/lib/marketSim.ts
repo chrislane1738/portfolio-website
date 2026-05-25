@@ -249,6 +249,21 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     lastTickAt = now
   }
 
+  function pregenerate(candleCountToFill: number) {
+    // Use a virtual clock so wall time is unaffected. After pregeneration,
+    // reset lastTickAt to -Infinity so the next real tick() seeds the clock.
+    const TICK = 1000
+    let virtualNow = 0
+    // First call seeds the clock; mimic that here by setting lastTickAt
+    lastTickAt = virtualNow
+    const ticksNeeded = candleCountToFill * 5
+    for (let i = 0; i < ticksNeeded; i++) {
+      virtualNow += TICK
+      advance(virtualNow)
+    }
+    lastTickAt = -Infinity
+  }
+
   return {
     getState: () => state,
     tick(now: number) {
@@ -261,6 +276,6 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
       advance(now)
       return state
     },
-    pregenerate: () => {},
+    pregenerate,
   }
 }
