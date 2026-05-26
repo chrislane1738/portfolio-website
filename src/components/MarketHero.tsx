@@ -371,8 +371,6 @@ export default function MarketHero() {
       initialPrice: 412.50,
       // Buffer holds visible + warmup so MA 50 has history from the start.
       candleCount: visible + WARMUP,
-      // Slight upward bias so the chart trends up over time.
-      drift: 0.06,
     })
     // Fill the entire buffer with synthetic history so first paint shows
     // a full chart with valid MA / VWAP / RSI from the leftmost candle.
