@@ -297,6 +297,77 @@ function drawRSIPanel(
   ctx.fillText('RSI 14', rx + 6, ry + 14)
 }
 
+// Pick a "nice" round price interval (1, 2.5, 5, or 10 × 10^n) so the
+// y-axis lands on clean labels like $0.05, $0.25, $1.00 instead of
+// arbitrary fractions of the auto-fit range.
+function niceInterval(range: number, targetCount = 7): number {
+  if (range <= 0) return 1
+  const rough = range / targetCount
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)))
+  const norm = rough / mag
+  let nice: number
+  if (norm < 1.5) nice = 1
+  else if (norm < 3.5) nice = 2.5
+  else if (norm < 7) nice = 5
+  else nice = 10
+  return nice * mag
+}
+
+function drawPriceAxis(
+  ctx: CanvasRenderingContext2D,
+  region: Region,
+  range: Range,
+  currentPrice: number,
+  candleOpen: number,
+) {
+  const { x: rx, y: ry, w: rw, h: rh } = region
+  const { lo, hi } = range
+  if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return
+
+  const yOf = (price: number) => ry + rh - ((price - lo) / (hi - lo)) * rh
+  const labelX = rx + rw * LIVE_EDGE_PCT + 10
+
+  const interval = niceInterval(hi - lo, 8)
+  const start = Math.ceil(lo / interval) * interval
+
+  ctx.save()
+  ctx.font = '9.5px ui-monospace, SFMono-Regular, Menlo, monospace'
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'left'
+
+  for (let p = start; p <= hi; p += interval) {
+    const y = yOf(p)
+    if (y < ry + 6 || y > ry + rh - 6) continue
+    // small tick connecting to the chart area
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(labelX - 5, y)
+    ctx.lineTo(labelX - 1, y)
+    ctx.stroke()
+    // label
+    ctx.fillStyle = 'rgba(255,255,255,0.42)'
+    ctx.fillText(p.toFixed(2), labelX, y)
+  }
+
+  // Current-price marker — colored badge pinned to the live price.
+  const cy = yOf(currentPrice)
+  if (cy >= ry && cy <= ry + rh) {
+    const color = currentPrice >= candleOpen ? '#5bcf87' : '#c97064'
+    const badgeW = 60
+    const badgeX = labelX - 6
+    const badgeY = cy - 9
+    ctx.fillStyle = color
+    ctx.fillRect(badgeX, badgeY, badgeW, 18)
+    ctx.fillStyle = '#0e1116'
+    ctx.font = 'bold 10px ui-monospace, SFMono-Regular, Menlo, monospace'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(currentPrice.toFixed(2), badgeX + 6, cy)
+  }
+
+  ctx.restore()
+}
+
 function drawCrosshair(
   ctx: CanvasRenderingContext2D,
   mouse: { x: number; y: number } | null,
@@ -425,7 +496,9 @@ export default function MarketHero() {
 
       const mainRegion: Region = { x: 0, y: 0, w: rect.width, h: mainH }
       const range = computeMainRange(candles, series)
+      const live = candles[candles.length - 1]
       drawMainPanel(ctx, candles, series, mainRegion, range)
+      drawPriceAxis(ctx, mainRegion, range, live.c, live.o)
       if (rsiOn) drawRSIPanel(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
       drawCrosshair(ctx, mouseRef.current, mainRegion, range)
     }
