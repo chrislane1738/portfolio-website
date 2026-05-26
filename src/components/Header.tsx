@@ -40,7 +40,7 @@ export default function Header() {
           </Link>
           <a
             href="mailto:chrislane1738@gmail.com"
-            className="font-mono text-[10px] text-accent tracking-[1px] px-3 py-1 border border-[rgba(91,164,207,0.3)] hover:bg-[rgba(91,164,207,0.05)] hover:border-accent transition-all duration-300"
+            className="font-mono text-[10px] text-accent tracking-[1px] px-3 py-1 border border-[rgba(91, 207, 135,0.3)] hover:bg-[rgba(91, 207, 135,0.05)] hover:border-accent transition-all duration-300"
           >
             Contact
           </a>

@@ -83,7 +83,7 @@ export default function ProjectModal({
               <h2 className="font-serif text-[26px] md:text-[30px] text-white leading-tight">
                 {project.title}
               </h2>
-              <span className="font-mono text-[9px] text-accent border border-[rgba(91,164,207,0.3)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
+              <span className="font-mono text-[9px] text-accent border border-[rgba(91, 207, 135,0.3)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
                 {project.visibility}
               </span>
             </div>
@@ -104,7 +104,7 @@ export default function ProjectModal({
                   href={project.link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block font-mono text-[11px] text-accent hover:text-white hover:bg-accent/10 transition-colors duration-300 mt-6 border border-[rgba(91,164,207,0.35)] px-4 py-2"
+                  className="inline-block font-mono text-[11px] text-accent hover:text-white hover:bg-accent/10 transition-colors duration-300 mt-6 border border-[rgba(91, 207, 135,0.35)] px-4 py-2"
                 >
                   {project.link.label} →
                 </a>
@@ -112,7 +112,7 @@ export default function ProjectModal({
                 <Link
                   href={project.link.url}
                   onClick={onClose}
-                  className="inline-block font-mono text-[11px] text-accent hover:text-white hover:bg-accent/10 transition-colors duration-300 mt-6 border border-[rgba(91,164,207,0.35)] px-4 py-2"
+                  className="inline-block font-mono text-[11px] text-accent hover:text-white hover:bg-accent/10 transition-colors duration-300 mt-6 border border-[rgba(91, 207, 135,0.35)] px-4 py-2"
                 >
                   {project.link.label} →
                 </Link>

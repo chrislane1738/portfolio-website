@@ -15,9 +15,9 @@ const config: Config = {
           elevated: '#141821',
         },
         accent: {
-          DEFAULT: '#5ba4cf',
-          glow: 'rgba(91,164,207,0.4)',
-          dim: 'rgba(91,164,207,0.15)',
+          DEFAULT: '#5bcf87',
+          glow: 'rgba(91,207,135,0.4)',
+          dim: 'rgba(91,207,135,0.15)',
         },
         text: {
           primary: '#ffffff',

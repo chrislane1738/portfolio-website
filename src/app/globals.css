@@ -52,7 +52,7 @@ main {
 
 .timeline-node.active {
   transform: scale(1.28);
-  box-shadow: 0 0 12px rgba(91, 164, 207, 0.6);
+  box-shadow: 0 0 12px rgba(91, 207, 135, 0.6);
 }
 
 /* Floating cards — each card uses this base animation,
@@ -92,28 +92,28 @@ main {
   opacity: 0.85;
 }
 .book-bar {
-  background: rgba(91,164,207,0.10);
+  background: rgba(91, 207, 135,0.10);
   border-radius: 1px;
   transition: width 600ms ease-out;
 }
 .book-bar-ask {
   background: rgba(201,112,100,0.10);
 }
-.book-row.is-touched .book-bar { background: rgba(91,164,207,0.22); }
+.book-row.is-touched .book-bar { background: rgba(91, 207, 135,0.22); }
 .book-row.is-touched .book-bar-ask { background: rgba(201,112,100,0.22); }
 
 /* LIVE pip pulse */
 @keyframes livePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(91,164,207,0.7); }
-  50%      { opacity: 0.5; box-shadow: 0 0 2px rgba(91,164,207,0.3); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(91, 207, 135,0.7); }
+  50%      { opacity: 0.5; box-shadow: 0 0 2px rgba(91, 207, 135,0.3); }
 }
 .live-pip { animation: livePulse 1.6s ease-in-out infinite; }
 
 /* Absorption flash bumps the bar opacity briefly when flashing class is on.
    The width transition (in book-bar) already handles the shrink/refill. */
 @keyframes absorbFlash {
-  0%   { background: rgba(91,164,207,0.45); }
-  100% { background: rgba(91,164,207,0.22); }
+  0%   { background: rgba(91, 207, 135,0.45); }
+  100% { background: rgba(91, 207, 135,0.22); }
 }
 .book-row-bid.is-flashing .book-bar {
   animation: absorbFlash 600ms ease-out;

@@ -14,7 +14,7 @@ export default function FavoritesFilterButton({
       aria-label={active ? 'Show all projects' : 'Show favorite projects only'}
       className={`fixed left-4 md:left-6 top-1/2 -translate-y-1/2 z-30 group flex flex-row items-center gap-2 px-3 py-2 rounded-sm border transition-all duration-300 ${
         active
-          ? 'border-accent bg-accent/10 text-accent shadow-[0_0_18px_rgba(91,164,207,0.25)]'
+          ? 'border-accent bg-accent/10 text-accent shadow-[0_0_18px_rgba(91, 207, 135,0.25)]'
           : 'border-[rgba(255,255,255,0.08)] bg-[rgba(14,17,22,0.85)] text-text-body hover:border-accent/40 hover:text-accent'
       }`}
     >

@@ -16,7 +16,7 @@ export default function ProjectNode({
     <div className={`reveal relative mb-16 last:mb-0 ${offset}`}>
       {/* Node dot */}
       <div
-        className="absolute w-[7px] h-[7px] rounded-full bg-accent shadow-[0_0_8px_rgba(91,164,207,0.4)] timeline-node"
+        className="absolute w-[7px] h-[7px] rounded-full bg-accent shadow-[0_0_8px_rgba(91, 207, 135,0.4)] timeline-node"
         style={{ left: '-11.5px', top: '8px' }}
       />
 
@@ -37,7 +37,7 @@ export default function ProjectNode({
             strokeWidth="1.2"
             strokeLinejoin="round"
             strokeLinecap="round"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(91,164,207,0.5))' }}
+            style={{ filter: 'drop-shadow(0 0 6px rgba(91, 207, 135,0.5))' }}
           >
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
@@ -55,7 +55,7 @@ export default function ProjectNode({
             onExpand()
           }
         }}
-        className="group relative overflow-hidden rounded-sm border border-[rgba(255,255,255,0.04)] hover:border-[rgba(91,164,207,0.25)] transition-colors duration-300 cursor-pointer"
+        className="group relative overflow-hidden rounded-sm border border-[rgba(255,255,255,0.04)] hover:border-[rgba(91, 207, 135,0.25)] transition-colors duration-300 cursor-pointer"
       >
         {/* Faded background image with vignette */}
         {project.image && (
@@ -104,7 +104,7 @@ export default function ProjectNode({
               <h3 className="font-serif text-[20px] md:text-[22px] text-white">
                 {project.title}
               </h3>
-              <span className="font-mono text-[9px] text-accent border border-[rgba(91,164,207,0.2)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
+              <span className="font-mono text-[9px] text-accent border border-[rgba(91, 207, 135,0.2)] px-2 py-[2px] tracking-[1px] whitespace-nowrap">
                 {project.visibility}
               </span>
             </div>
