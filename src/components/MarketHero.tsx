@@ -11,15 +11,29 @@ type Candle = SimState['candles'][number]
 // middle of the screen.
 const LIVE_EDGE_PCT = 0.7
 
+// How many candles are visible on screen at once. The simulator's buffer
+// holds VISIBLE + WARMUP candles so longer-lookback indicators (MA 50) have
+// data for every visible candle on first render.
+const VISIBLE_DESKTOP = 60
+const VISIBLE_MOBILE = 25
+const WARMUP = 60
+
 // ── Indicators ─────────────────────────────────────────────────────────
 
 type IndicatorId = 'ma20' | 'ma50' | 'vwap' | 'rsi'
 
+const COLORS = {
+  ma20: '#6dc8ff',   // bright blue
+  ma50: '#3a82c4',   // deeper blue
+  vwap: '#b58df0',   // soft violet (line + band tint)
+  rsi:  '#5bcf87',   // accent green
+}
+
 const INDICATORS: { id: IndicatorId; label: string; color: string }[] = [
-  { id: 'ma20', label: 'MA 20', color: '#5bcf87' },   // accent green
-  { id: 'ma50', label: 'MA 50', color: '#f5b14c' },   // amber
-  { id: 'vwap', label: 'VWAP',  color: '#b58df0' },   // soft violet
-  { id: 'rsi',  label: 'RSI 14', color: '#5bcf87' },
+  { id: 'ma20', label: 'MA 20',  color: COLORS.ma20 },
+  { id: 'ma50', label: 'MA 50',  color: COLORS.ma50 },
+  { id: 'vwap', label: 'VWAP',   color: COLORS.vwap },
+  { id: 'rsi',  label: 'RSI 14', color: COLORS.rsi  },
 ]
 
 function computeSMA(candles: Candle[], period: number): number[] {
@@ -56,68 +70,111 @@ function computeRSI(candles: Candle[], period = 14): number[] {
   return out
 }
 
-function computeVWAP(candles: Candle[]): number[] {
-  // Synthetic per-candle volume — deterministic from candle index so it
-  // matches what the eye expects (no flicker on each frame). The simulator
-  // doesn't track volume; this is purely a renderer aid.
-  const out: number[] = []
+function computeVWAPWithBands(
+  candles: Candle[],
+  stdDevMult = 2,
+): { vwap: number[]; upper: number[]; lower: number[] } {
+  const vwap: number[] = []
+  const upper: number[] = []
+  const lower: number[] = []
   let cumPV = 0
   let cumV = 0
+  let cumP2V = 0
   for (let i = 0; i < candles.length; i++) {
     const c = candles[i]
     const typical = (c.h + c.l + c.c) / 3
+    // Deterministic synthetic volume so the band doesn't flicker per frame.
     const v = 5000 + (Math.sin(i * 1.3 + 17) * 0.5 + 0.5) * 15000
     cumPV += typical * v
     cumV += v
-    out.push(cumPV / cumV)
+    cumP2V += typical * typical * v
+    const vw = cumPV / cumV
+    const variance = Math.max(0, cumP2V / cumV - vw * vw)
+    const sd = Math.sqrt(variance)
+    vwap.push(vw)
+    upper.push(vw + stdDevMult * sd)
+    lower.push(vw - stdDevMult * sd)
   }
-  return out
+  return { vwap, upper, lower }
 }
 
 // ── Canvas drawing ─────────────────────────────────────────────────────
 
 type Region = { x: number; y: number; w: number; h: number }
 
-function drawCandles(
-  ctx: CanvasRenderingContext2D,
-  candles: Candle[],
-  enabled: Set<IndicatorId>,
-  region: Region,
-) {
-  const { x: rx, y: ry, w: rw, h: rh } = region
-  if (candles.length === 0) return
+type Series = {
+  ma20?: number[]
+  ma50?: number[]
+  vwap?: number[]
+  vwapUpper?: number[]
+  vwapLower?: number[]
+}
 
-  // y-axis: include candle hi/lo plus any enabled overlay values so MA/VWAP
-  // lines stay on-screen even when they drift outside the candle band.
+type Range = { lo: number; hi: number }
+
+function computeMainRange(candles: Candle[], series: Series): Range {
   let lo = Infinity, hi = -Infinity
   for (const c of candles) {
     if (c.l < lo) lo = c.l
     if (c.h > hi) hi = c.h
   }
-
-  const overlays: { values: number[]; color: string }[] = []
-  if (enabled.has('ma20')) overlays.push({ values: computeSMA(candles, 20), color: INDICATORS[0].color })
-  if (enabled.has('ma50')) overlays.push({ values: computeSMA(candles, 50), color: INDICATORS[1].color })
-  if (enabled.has('vwap')) overlays.push({ values: computeVWAP(candles),   color: INDICATORS[2].color })
-  for (const ov of overlays) {
-    for (const v of ov.values) {
+  const include = (arr?: number[]) => {
+    if (!arr) return
+    for (const v of arr) {
       if (!Number.isFinite(v)) continue
       if (v < lo) lo = v
       if (v > hi) hi = v
     }
   }
-
+  include(series.ma20)
+  include(series.ma50)
+  include(series.vwapUpper)
+  include(series.vwapLower)
   if (lo === hi) { lo -= 1; hi += 1 }
   const pad = (hi - lo) * 0.1
-  lo -= pad; hi += pad
+  return { lo: lo - pad, hi: hi + pad }
+}
+
+function drawMainPanel(
+  ctx: CanvasRenderingContext2D,
+  candles: Candle[],
+  series: Series,
+  region: Region,
+  range: Range,
+) {
+  const { x: rx, y: ry, w: rw, h: rh } = region
+  const { lo, hi } = range
+  if (candles.length === 0) return
 
   const yOf = (price: number) => ry + rh - ((price - lo) / (hi - lo)) * rh
 
-  // Candles only fill the LEFT LIVE_EDGE_PCT of the region.
   const candleAreaWidth = rw * LIVE_EDGE_PCT
   const slot = candleAreaWidth / candles.length
   const bodyW = Math.max(2, slot - 2)
+  const xAt = (i: number) => rx + i * slot + slot / 2
 
+  // VWAP band fill (drawn first so candles are on top)
+  if (series.vwapUpper && series.vwapLower) {
+    ctx.fillStyle = 'rgba(181, 141, 240, 0.10)'
+    ctx.beginPath()
+    let started = false
+    for (let i = 0; i < candles.length; i++) {
+      const u = series.vwapUpper[i]
+      if (!Number.isFinite(u)) continue
+      const px = xAt(i)
+      if (!started) { ctx.moveTo(px, yOf(u)); started = true }
+      else ctx.lineTo(px, yOf(u))
+    }
+    for (let i = candles.length - 1; i >= 0; i--) {
+      const l = series.vwapLower![i]
+      if (!Number.isFinite(l)) continue
+      ctx.lineTo(xAt(i), yOf(l))
+    }
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  // Candles
   for (let i = 0; i < candles.length; i++) {
     const c = candles[i]
     const x = rx + i * slot + (slot - bodyW) / 2
@@ -134,27 +191,41 @@ function drawCandles(
   }
   ctx.globalAlpha = 1
 
-  // Indicator overlays — draw line through each candle slot's center.
-  for (const ov of overlays) {
-    ctx.strokeStyle = ov.color
-    ctx.lineWidth = 1.4
-    ctx.globalAlpha = 0.85
+  // MA lines — blue, dotted (different dash for MA 20 vs MA 50)
+  const drawLine = (
+    values: number[],
+    color: string,
+    dash: number[],
+    alpha = 0.9,
+    width = 1.4,
+  ) => {
+    ctx.strokeStyle = color
+    ctx.lineWidth = width
+    ctx.setLineDash(dash)
+    ctx.globalAlpha = alpha
     ctx.beginPath()
     let started = false
-    for (let i = 0; i < candles.length; i++) {
-      const v = ov.values[i]
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i]
       if (!Number.isFinite(v)) { started = false; continue }
-      const x = rx + i * slot + slot / 2
-      const y = yOf(v)
-      if (!started) { ctx.moveTo(x, y); started = true }
-      else ctx.lineTo(x, y)
+      const px = xAt(i)
+      const py = yOf(v)
+      if (!started) { ctx.moveTo(px, py); started = true }
+      else ctx.lineTo(px, py)
     }
     ctx.stroke()
+    ctx.setLineDash([])
+    ctx.globalAlpha = 1
   }
-  ctx.globalAlpha = 1
+
+  if (series.ma20) drawLine(series.ma20, COLORS.ma20, [2, 3])
+  if (series.ma50) drawLine(series.ma50, COLORS.ma50, [4, 4])
+  if (series.vwap) drawLine(series.vwap, COLORS.vwap, [], 0.85)
+  if (series.vwapUpper) drawLine(series.vwapUpper, COLORS.vwap, [3, 3], 0.45, 1)
+  if (series.vwapLower) drawLine(series.vwapLower, COLORS.vwap, [3, 3], 0.45, 1)
 }
 
-function drawRSI(
+function drawRSIPanel(
   ctx: CanvasRenderingContext2D,
   candles: Candle[],
   region: Region,
@@ -163,29 +234,37 @@ function drawRSI(
   if (candles.length === 0) return
 
   const rsi = computeRSI(candles, 14)
+  const panelW = rw * LIVE_EDGE_PCT
 
-  // background tint + frame
+  // background tint
   ctx.fillStyle = 'rgba(255,255,255,0.015)'
-  ctx.fillRect(rx, ry, rw * LIVE_EDGE_PCT, rh)
+  ctx.fillRect(rx, ry, panelW, rh)
 
   const yOf = (v: number) => ry + rh - (v / 100) * rh
 
-  // 30 / 70 reference lines
+  // reference lines + labels at 70 / 30
   ctx.strokeStyle = 'rgba(255,255,255,0.10)'
   ctx.lineWidth = 1
   ctx.setLineDash([3, 4])
   ctx.beginPath()
   ctx.moveTo(rx, yOf(70))
-  ctx.lineTo(rx + rw * LIVE_EDGE_PCT, yOf(70))
+  ctx.lineTo(rx + panelW, yOf(70))
   ctx.moveTo(rx, yOf(30))
-  ctx.lineTo(rx + rw * LIVE_EDGE_PCT, yOf(30))
+  ctx.lineTo(rx + panelW, yOf(30))
   ctx.stroke()
   ctx.setLineDash([])
 
+  ctx.fillStyle = 'rgba(255,255,255,0.45)'
+  ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('70', rx + panelW + 4, yOf(70))
+  ctx.fillText('30', rx + panelW + 4, yOf(30))
+
   // RSI line
-  const candleAreaWidth = rw * LIVE_EDGE_PCT
-  const slot = candleAreaWidth / candles.length
-  ctx.strokeStyle = INDICATORS[3].color
+  const slot = panelW / candles.length
+  const xAt = (i: number) => rx + i * slot + slot / 2
+
+  ctx.strokeStyle = COLORS.rsi
   ctx.lineWidth = 1.4
   ctx.globalAlpha = 0.9
   ctx.beginPath()
@@ -193,18 +272,58 @@ function drawRSI(
   for (let i = 0; i < candles.length; i++) {
     const v = rsi[i]
     if (!Number.isFinite(v)) { started = false; continue }
-    const x = rx + i * slot + slot / 2
-    const y = yOf(v)
-    if (!started) { ctx.moveTo(x, y); started = true }
-    else ctx.lineTo(x, y)
+    if (!started) { ctx.moveTo(xAt(i), yOf(v)); started = true }
+    else ctx.lineTo(xAt(i), yOf(v))
   }
   ctx.stroke()
   ctx.globalAlpha = 1
 
-  // small "RSI" label top-left of panel
+  // panel label
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
-  ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace'
-  ctx.fillText('RSI 14', rx + 6, ry + 12)
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillText('RSI 14', rx + 6, ry + 14)
+}
+
+function drawCrosshair(
+  ctx: CanvasRenderingContext2D,
+  mouse: { x: number; y: number } | null,
+  region: Region,
+  range: Range,
+) {
+  if (!mouse) return
+  const { x: rx, y: ry, w: rw, h: rh } = region
+  const { lo, hi } = range
+  const panelW = rw * LIVE_EDGE_PCT
+  if (mouse.x < rx || mouse.x > rx + panelW) return
+  if (mouse.y < ry || mouse.y > ry + rh) return
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'
+  ctx.lineWidth = 1
+  ctx.setLineDash([3, 4])
+
+  ctx.beginPath()
+  ctx.moveTo(mouse.x, ry)
+  ctx.lineTo(mouse.x, ry + rh)
+  ctx.moveTo(rx, mouse.y)
+  ctx.lineTo(rx + panelW, mouse.y)
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  // price label on the right edge of the chart area
+  const price = lo + ((ry + rh - mouse.y) / rh) * (hi - lo)
+  const text = `$${price.toFixed(2)}`
+  const labelW = 56
+  const labelX = rx + panelW + 2
+  const labelY = mouse.y - 8
+  ctx.fillStyle = 'rgba(11,13,18,0.96)'
+  ctx.fillRect(labelX, labelY, labelW, 16)
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)'
+  ctx.lineWidth = 1
+  ctx.strokeRect(labelX, labelY, labelW, 16)
+  ctx.fillStyle = '#fff'
+  ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, labelX + 6, labelY + 8)
 }
 
 function formatPrice(p: number) {
@@ -218,6 +337,8 @@ function formatTime() {
   return `${hh}:${mm} ET`
 }
 
+// ── Component ──────────────────────────────────────────────────────────
+
 export default function MarketHero() {
   const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
   const [state, setState] = useState<SimState | null>(null)
@@ -228,15 +349,21 @@ export default function MarketHero() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number>(0)
+  const mouseRef = useRef<{ x: number; y: number } | null>(null)
 
   if (!simRef.current) {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-    // 60 desktop / 25 mobile — enough history for MA50 to render meaningfully.
+    const visible = isMobile ? VISIBLE_MOBILE : VISIBLE_DESKTOP
     const sim = createSimulator({
       initialPrice: 412.50,
-      candleCount: isMobile ? 25 : 60,
+      // Buffer holds visible + warmup so MA 50 has history from the start.
+      candleCount: visible + WARMUP,
+      // Slight upward bias so the chart trends up over time.
+      drift: 0.06,
     })
-    sim.pregenerate(isMobile ? 12 : 30)
+    // Fill the entire buffer with synthetic history so first paint shows
+    // a full chart with valid MA / VWAP / RSI from the leftmost candle.
+    sim.pregenerate(visible + WARMUP)
     simRef.current = sim
   }
 
@@ -261,23 +388,39 @@ export default function MarketHero() {
 
     setNow(formatTime())
 
-    const draw = (candles: Candle[]) => {
+    const draw = (allCandles: Candle[]) => {
       const rect = canvas.getBoundingClientRect()
       ctx.clearRect(0, 0, rect.width, rect.height)
 
+      const isMobile = window.innerWidth < 768
+      const visible = isMobile ? VISIBLE_MOBILE : VISIBLE_DESKTOP
+      const candles = allCandles.slice(-visible)
+
       const en = enabledRef.current
+      const series: Series = {}
+      if (en.has('ma20')) series.ma20 = computeSMA(allCandles, 20).slice(-visible)
+      if (en.has('ma50')) series.ma50 = computeSMA(allCandles, 50).slice(-visible)
+      if (en.has('vwap')) {
+        const { vwap, upper, lower } = computeVWAPWithBands(allCandles, 2)
+        series.vwap = vwap.slice(-visible)
+        series.vwapUpper = upper.slice(-visible)
+        series.vwapLower = lower.slice(-visible)
+      }
+
       const rsiOn = en.has('rsi')
       const mainH = rsiOn ? rect.height * 0.72 : rect.height
       const rsiY = rsiOn ? rect.height * 0.75 : 0
       const rsiH = rsiOn ? rect.height * 0.25 : 0
 
-      drawCandles(ctx, candles, en, { x: 0, y: 0, w: rect.width, h: mainH })
-      if (rsiOn) drawRSI(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
+      const mainRegion: Region = { x: 0, y: 0, w: rect.width, h: mainH }
+      const range = computeMainRange(candles, series)
+      drawMainPanel(ctx, candles, series, mainRegion, range)
+      if (rsiOn) drawRSIPanel(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
+      drawCrosshair(ctx, mouseRef.current, mainRegion, range)
     }
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
-      simRef.current.pregenerate(60)
       const snap = simRef.current.getState()
       setState(snap)
       draw(snap.candles)
@@ -295,8 +438,6 @@ export default function MarketHero() {
     let lastPrice = simRef.current.getState().price
     let lastTickIndex = simRef.current.getState().tickIndex
 
-    // Live-candle interpolation — lerp displayed OHLC toward target every
-    // frame so the wick visibly grows between 1-Hz ticks.
     const LERP = 0.18
     let liveRef: Candle | null = null
     let dispH = 0, dispL = 0, dispC = 0
@@ -355,6 +496,17 @@ export default function MarketHero() {
     })
   }
 
+  // Crosshair mouse handlers — attached to a transparent overlay sized to
+  // the canvas. pointer-events-auto on the overlay only; the toggle column
+  // sits at a higher z so its buttons stay clickable.
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  }
+  const handleMouseLeave = () => { mouseRef.current = null }
+
   return (
     <section className="relative h-[calc(100vh-72px)] mt-[72px] bg-bg-deep overflow-hidden">
       {/* Top strip */}
@@ -375,8 +527,8 @@ export default function MarketHero() {
         </span>
       </div>
 
-      {/* Indicator toggle column (top-right of chart area). */}
-      <div className="hidden md:flex absolute top-12 right-4 z-20 flex-col gap-1.5">
+      {/* Indicator toggle column */}
+      <div className="hidden md:flex absolute top-12 right-4 z-30 flex-col gap-1.5">
         <span className="font-mono text-[9px] text-text-muted tracking-[2px] uppercase mb-1 self-end">
           Indicators
         </span>
@@ -442,17 +594,16 @@ export default function MarketHero() {
         aria-hidden="true"
       />
 
-      <div className="chart-overlay" aria-hidden="true" />
-
-      {/* Intro paragraph — anchored near the bottom so the middle of the
-          screen is clear for the chart. Name + tagline now live in the
-          header (Header.tsx). */}
-      <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center px-4">
-        <p className="font-mono text-[13px] text-white max-w-md text-center leading-[1.7]">
-          A finance student and operator who believes in learning by doing.
-          Building tools, leading teams, and turning ideas into products.
-        </p>
-      </div>
+      {/* Crosshair mouse-capture overlay — sized to match the canvas, sits
+          just above it so we can read cursor position. cursor-crosshair to
+          hint at the feature. Toggle column has higher z so it stays
+          clickable. */}
+      <div
+        className="hidden md:block absolute top-9 bottom-9 left-[22%] right-0 z-[3] cursor-crosshair"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        aria-hidden="true"
+      />
 
       {/* Bottom strip */}
       <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[9px] uppercase tracking-[2px] text-text-muted border-t border-[rgba(255,255,255,0.04)] font-mono"
@@ -461,8 +612,7 @@ export default function MarketHero() {
         <span>SESSION ALIVE</span>
       </div>
 
-      {/* Combined order book ladder (left): asks reversed on top, bids below.
-          Classic centered-spread layout — prices descend top to bottom. */}
+      {/* Combined order book ladder (left): asks reversed on top, bids below. */}
       <ul className="hidden md:flex absolute top-9 bottom-9 left-0 w-[22%] z-10 flex-col items-end px-3 py-3 m-0 list-none"
           aria-hidden="true">
         {[...s.asks].reverse().map((lvl, i) => {

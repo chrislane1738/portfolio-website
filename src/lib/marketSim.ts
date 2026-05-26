@@ -47,6 +47,8 @@ export type SimulatorOptions = {
   bookIncrement?: number
   seed?: number
   noise?: () => number
+  /** Constant per-tick drift as a fraction of baseStep. Default 0. */
+  drift?: number
 }
 
 export interface Simulator {
@@ -213,7 +215,10 @@ export function createSimulator(options: SimulatorOptions = {}): Simulator {
     const baseStep = opts.initialPrice * opts.tickStep
     const noiseDelta = noise() * baseStep * regimeMultiplier()
     const reversion = meanReversionDelta(state.price, baseStep)
-    let nextPrice = state.price + noiseDelta + reversion
+    // Optional constant drift per tick (fraction of baseStep). Small positive
+    // values give the chart a slight long-term upward bias.
+    const drift = baseStep * (opts.drift ?? 0)
+    let nextPrice = state.price + noiseDelta + reversion + drift
 
     // Hard clamp as last resort — anchored to initialPrice so the wall
     // doesn't drift with midPrice. Under realistic noise midPrice barely
