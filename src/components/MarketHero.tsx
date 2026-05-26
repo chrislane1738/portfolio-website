@@ -171,6 +171,8 @@ export default function MarketHero() {
         aria-hidden="true"
       />
 
+      <div className="chart-overlay" aria-hidden="true" />
+
       {/* Center column */}
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4">
         <h1 className="font-serif text-[32px] md:text-[40px] text-white tracking-[1px]">
