@@ -94,25 +94,39 @@ export default function MarketHero() {
     fit()
     window.addEventListener('resize', fit)
 
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      simRef.current.pregenerate(60)
+      const snap = simRef.current.getState()
+      setState(snap)
+      const rect = canvas.getBoundingClientRect()
+      drawCandles(ctx, snap.candles, rect.width, rect.height)
+      return () => window.removeEventListener('resize', fit)
+    }
+
+    let inView = true
+    const io = new IntersectionObserver(
+      (entries) => { inView = entries[0]?.isIntersecting ?? true },
+      { threshold: 0 }
+    )
+    const sectionEl = canvas.closest('section')
+    if (sectionEl) io.observe(sectionEl)
+
     let lastPrice = simRef.current.getState().price
     let lastTickIndex = simRef.current.getState().tickIndex
 
     const loop = (t: number) => {
-      const next = simRef.current!.tick(t)
-
-      // Only call setState when the simulator actually advanced (~1Hz). React
-      // renders the strips + ladders at sim tick frequency, not every frame.
-      if (next.price !== lastPrice || next.tickIndex !== lastTickIndex) {
-        setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
-        lastPrice = next.price
-        lastTickIndex = next.tickIndex
+      const docVisible = typeof document !== 'undefined' && document.visibilityState === 'visible'
+      if (inView && docVisible) {
+        const next = simRef.current!.tick(t)
+        if (next.price !== lastPrice || next.tickIndex !== lastTickIndex) {
+          setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+          lastPrice = next.price
+          lastTickIndex = next.tickIndex
+        }
+        const rect = canvas.getBoundingClientRect()
+        drawCandles(ctx, next.candles, rect.width, rect.height)
       }
-
-      // Canvas redraws every frame to support smooth wick interpolation (Task 15
-      // refines this). Reading the live candle array directly is safe — the
-      // simulator mutates in place and we only read.
-      const rect = canvas.getBoundingClientRect()
-      drawCandles(ctx, next.candles, rect.width, rect.height)
       rafRef.current = requestAnimationFrame(loop)
     }
     rafRef.current = requestAnimationFrame(loop)
@@ -121,6 +135,7 @@ export default function MarketHero() {
 
     return () => {
       cancelAnimationFrame(rafRef.current)
+      io.disconnect()
       window.removeEventListener('resize', fit)
       clearInterval(timeId)
     }
