@@ -11,53 +11,200 @@ type Candle = SimState['candles'][number]
 // middle of the screen.
 const LIVE_EDGE_PCT = 0.7
 
+// ── Indicators ─────────────────────────────────────────────────────────
+
+type IndicatorId = 'ma20' | 'ma50' | 'vwap' | 'rsi'
+
+const INDICATORS: { id: IndicatorId; label: string; color: string }[] = [
+  { id: 'ma20', label: 'MA 20', color: '#5bcf87' },   // accent green
+  { id: 'ma50', label: 'MA 50', color: '#f5b14c' },   // amber
+  { id: 'vwap', label: 'VWAP',  color: '#b58df0' },   // soft violet
+  { id: 'rsi',  label: 'RSI 14', color: '#5bcf87' },
+]
+
+function computeSMA(candles: Candle[], period: number): number[] {
+  const out: number[] = []
+  for (let i = 0; i < candles.length; i++) {
+    if (i < period - 1) { out.push(NaN); continue }
+    let sum = 0
+    for (let j = i - period + 1; j <= i; j++) sum += candles[j].c
+    out.push(sum / period)
+  }
+  return out
+}
+
+function computeRSI(candles: Candle[], period = 14): number[] {
+  const out: number[] = candles.map(() => NaN)
+  if (candles.length < period + 1) return out
+  let gain = 0, loss = 0
+  for (let i = 1; i <= period; i++) {
+    const ch = candles[i].c - candles[i - 1].c
+    if (ch > 0) gain += ch
+    else loss -= ch
+  }
+  gain /= period
+  loss /= period
+  out[period] = loss === 0 ? 100 : 100 - 100 / (1 + gain / loss)
+  for (let i = period + 1; i < candles.length; i++) {
+    const ch = candles[i].c - candles[i - 1].c
+    const g = ch > 0 ? ch : 0
+    const l = ch < 0 ? -ch : 0
+    gain = (gain * (period - 1) + g) / period
+    loss = (loss * (period - 1) + l) / period
+    out[i] = loss === 0 ? 100 : 100 - 100 / (1 + gain / loss)
+  }
+  return out
+}
+
+function computeVWAP(candles: Candle[]): number[] {
+  // Synthetic per-candle volume — deterministic from candle index so it
+  // matches what the eye expects (no flicker on each frame). The simulator
+  // doesn't track volume; this is purely a renderer aid.
+  const out: number[] = []
+  let cumPV = 0
+  let cumV = 0
+  for (let i = 0; i < candles.length; i++) {
+    const c = candles[i]
+    const typical = (c.h + c.l + c.c) / 3
+    const v = 5000 + (Math.sin(i * 1.3 + 17) * 0.5 + 0.5) * 15000
+    cumPV += typical * v
+    cumV += v
+    out.push(cumPV / cumV)
+  }
+  return out
+}
+
+// ── Canvas drawing ─────────────────────────────────────────────────────
+
+type Region = { x: number; y: number; w: number; h: number }
+
 function drawCandles(
   ctx: CanvasRenderingContext2D,
   candles: Candle[],
-  width: number,
-  height: number,
+  enabled: Set<IndicatorId>,
+  region: Region,
 ) {
-  ctx.clearRect(0, 0, width, height)
+  const { x: rx, y: ry, w: rw, h: rh } = region
   if (candles.length === 0) return
 
-  // y-axis: pick range that hugs the visible candles
+  // y-axis: include candle hi/lo plus any enabled overlay values so MA/VWAP
+  // lines stay on-screen even when they drift outside the candle band.
   let lo = Infinity, hi = -Infinity
   for (const c of candles) {
     if (c.l < lo) lo = c.l
     if (c.h > hi) hi = c.h
   }
+
+  const overlays: { values: number[]; color: string }[] = []
+  if (enabled.has('ma20')) overlays.push({ values: computeSMA(candles, 20), color: INDICATORS[0].color })
+  if (enabled.has('ma50')) overlays.push({ values: computeSMA(candles, 50), color: INDICATORS[1].color })
+  if (enabled.has('vwap')) overlays.push({ values: computeVWAP(candles),   color: INDICATORS[2].color })
+  for (const ov of overlays) {
+    for (const v of ov.values) {
+      if (!Number.isFinite(v)) continue
+      if (v < lo) lo = v
+      if (v > hi) hi = v
+    }
+  }
+
   if (lo === hi) { lo -= 1; hi += 1 }
   const pad = (hi - lo) * 0.1
   lo -= pad; hi += pad
 
-  const yOf = (price: number) =>
-    height - ((price - lo) / (hi - lo)) * height
+  const yOf = (price: number) => ry + rh - ((price - lo) / (hi - lo)) * rh
 
-  // Candles only fill the LEFT LIVE_EDGE_PCT of the canvas. The right
-  // remainder is empty space — visually the live candle "generates" near
-  // the middle of the screen, not the right edge.
-  const candleAreaWidth = width * LIVE_EDGE_PCT
+  // Candles only fill the LEFT LIVE_EDGE_PCT of the region.
+  const candleAreaWidth = rw * LIVE_EDGE_PCT
   const slot = candleAreaWidth / candles.length
   const bodyW = Math.max(2, slot - 2)
 
   for (let i = 0; i < candles.length; i++) {
     const c = candles[i]
-    const x = i * slot + (slot - bodyW) / 2
+    const x = rx + i * slot + (slot - bodyW) / 2
     const isUp = c.c >= c.o
     const color = isUp ? '#5bcf87' : '#c97064'
-    // fade leftmost candles
     const fadeIn = Math.min(1, i / 6)
     ctx.globalAlpha = fadeIn * (i === candles.length - 1 ? 0.9 : 0.55)
 
-    // wick
     ctx.fillStyle = color
     ctx.fillRect(x + bodyW / 2 - 0.5, yOf(c.h), 1, yOf(c.l) - yOf(c.h))
-    // body
     const bodyTop = yOf(Math.max(c.o, c.c))
     const bodyBot = yOf(Math.min(c.o, c.c))
     ctx.fillRect(x, bodyTop, bodyW, Math.max(1, bodyBot - bodyTop))
   }
   ctx.globalAlpha = 1
+
+  // Indicator overlays — draw line through each candle slot's center.
+  for (const ov of overlays) {
+    ctx.strokeStyle = ov.color
+    ctx.lineWidth = 1.4
+    ctx.globalAlpha = 0.85
+    ctx.beginPath()
+    let started = false
+    for (let i = 0; i < candles.length; i++) {
+      const v = ov.values[i]
+      if (!Number.isFinite(v)) { started = false; continue }
+      const x = rx + i * slot + slot / 2
+      const y = yOf(v)
+      if (!started) { ctx.moveTo(x, y); started = true }
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+}
+
+function drawRSI(
+  ctx: CanvasRenderingContext2D,
+  candles: Candle[],
+  region: Region,
+) {
+  const { x: rx, y: ry, w: rw, h: rh } = region
+  if (candles.length === 0) return
+
+  const rsi = computeRSI(candles, 14)
+
+  // background tint + frame
+  ctx.fillStyle = 'rgba(255,255,255,0.015)'
+  ctx.fillRect(rx, ry, rw * LIVE_EDGE_PCT, rh)
+
+  const yOf = (v: number) => ry + rh - (v / 100) * rh
+
+  // 30 / 70 reference lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)'
+  ctx.lineWidth = 1
+  ctx.setLineDash([3, 4])
+  ctx.beginPath()
+  ctx.moveTo(rx, yOf(70))
+  ctx.lineTo(rx + rw * LIVE_EDGE_PCT, yOf(70))
+  ctx.moveTo(rx, yOf(30))
+  ctx.lineTo(rx + rw * LIVE_EDGE_PCT, yOf(30))
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  // RSI line
+  const candleAreaWidth = rw * LIVE_EDGE_PCT
+  const slot = candleAreaWidth / candles.length
+  ctx.strokeStyle = INDICATORS[3].color
+  ctx.lineWidth = 1.4
+  ctx.globalAlpha = 0.9
+  ctx.beginPath()
+  let started = false
+  for (let i = 0; i < candles.length; i++) {
+    const v = rsi[i]
+    if (!Number.isFinite(v)) { started = false; continue }
+    const x = rx + i * slot + slot / 2
+    const y = yOf(v)
+    if (!started) { ctx.moveTo(x, y); started = true }
+    else ctx.lineTo(x, y)
+  }
+  ctx.stroke()
+  ctx.globalAlpha = 1
+
+  // small "RSI" label top-left of panel
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'
+  ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace'
+  ctx.fillText('RSI 14', rx + 6, ry + 12)
 }
 
 function formatPrice(p: number) {
@@ -75,17 +222,21 @@ export default function MarketHero() {
   const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
   const [state, setState] = useState<SimState | null>(null)
   const [now, setNow] = useState<string>('')
+  const [enabled, setEnabled] = useState<Set<IndicatorId>>(new Set())
+  const enabledRef = useRef<Set<IndicatorId>>(enabled)
+  useEffect(() => { enabledRef.current = enabled }, [enabled])
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number>(0)
 
   if (!simRef.current) {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    // 60 desktop / 25 mobile — enough history for MA50 to render meaningfully.
     const sim = createSimulator({
       initialPrice: 412.50,
-      candleCount: isMobile ? 18 : 30,
+      candleCount: isMobile ? 25 : 60,
     })
-    sim.pregenerate(isMobile ? 7 : 12)
+    sim.pregenerate(isMobile ? 12 : 30)
     simRef.current = sim
   }
 
@@ -110,13 +261,26 @@ export default function MarketHero() {
 
     setNow(formatTime())
 
+    const draw = (candles: Candle[]) => {
+      const rect = canvas.getBoundingClientRect()
+      ctx.clearRect(0, 0, rect.width, rect.height)
+
+      const en = enabledRef.current
+      const rsiOn = en.has('rsi')
+      const mainH = rsiOn ? rect.height * 0.72 : rect.height
+      const rsiY = rsiOn ? rect.height * 0.75 : 0
+      const rsiH = rsiOn ? rect.height * 0.25 : 0
+
+      drawCandles(ctx, candles, en, { x: 0, y: 0, w: rect.width, h: mainH })
+      if (rsiOn) drawRSI(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
+    }
+
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
       simRef.current.pregenerate(60)
       const snap = simRef.current.getState()
       setState(snap)
-      const rect = canvas.getBoundingClientRect()
-      drawCandles(ctx, snap.candles, rect.width, rect.height)
+      draw(snap.candles)
       return () => window.removeEventListener('resize', fit)
     }
 
@@ -131,11 +295,8 @@ export default function MarketHero() {
     let lastPrice = simRef.current.getState().price
     let lastTickIndex = simRef.current.getState().tickIndex
 
-    // Live-candle interpolation: each tick snaps the simulator's OHLC to
-    // new values once per second. To make the wick visibly *grow* between
-    // ticks instead of teleporting, we lerp displayed OHLC toward target
-    // every frame. When the live candle reference changes (new candle
-    // pushed by candle-close), we snap without lerping.
+    // Live-candle interpolation — lerp displayed OHLC toward target every
+    // frame so the wick visibly grows between 1-Hz ticks.
     const LERP = 0.18
     let liveRef: Candle | null = null
     let dispH = 0, dispL = 0, dispC = 0
@@ -152,7 +313,6 @@ export default function MarketHero() {
 
         const live = next.candles[next.candles.length - 1]
         if (live !== liveRef) {
-          // New candle pushed — snap displayed OHLC to its starting values.
           dispH = live.h
           dispL = live.l
           dispC = live.c
@@ -163,13 +323,10 @@ export default function MarketHero() {
           dispC += (live.c - dispC) * LERP
         }
 
-        // Replace the live candle in the draw array with the interpolated
-        // version so the chart shows smooth wick growth between ticks.
         const drawArr = next.candles.slice(0, -1)
         drawArr.push({ o: live.o, h: dispH, l: dispL, c: dispC, closed: false })
 
-        const rect = canvas.getBoundingClientRect()
-        drawCandles(ctx, drawArr, rect.width, rect.height)
+        draw(drawArr)
       }
       rafRef.current = requestAnimationFrame(loop)
     }
@@ -189,6 +346,15 @@ export default function MarketHero() {
   const initial = 412.50
   const deltaPct = ((s.price - initial) / initial) * 100
 
+  const toggle = (id: IndicatorId) => {
+    setEnabled(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   return (
     <section className="relative h-[calc(100vh-72px)] mt-[72px] bg-bg-deep overflow-hidden">
       {/* Top strip */}
@@ -207,6 +373,34 @@ export default function MarketHero() {
           {now}
           <span className="inline-block w-[6px] h-[6px] rounded-full bg-accent live-pip" />
         </span>
+      </div>
+
+      {/* Indicator toggle column (top-right of chart area). */}
+      <div className="hidden md:flex absolute top-12 right-4 z-20 flex-col gap-1.5">
+        <span className="font-mono text-[9px] text-text-muted tracking-[2px] uppercase mb-1 self-end">
+          Indicators
+        </span>
+        {INDICATORS.map((ind) => {
+          const on = enabled.has(ind.id)
+          return (
+            <button
+              key={ind.id}
+              onClick={() => toggle(ind.id)}
+              aria-pressed={on}
+              className={`font-mono text-[9.5px] tracking-[1px] px-2.5 py-1 border rounded-sm transition-colors duration-200 flex items-center gap-2 ${
+                on
+                  ? 'border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.04)] text-white'
+                  : 'border-[rgba(255,255,255,0.08)] text-text-muted hover:text-white hover:border-[rgba(255,255,255,0.18)]'
+              }`}
+            >
+              <span
+                className="inline-block w-2 h-2 rounded-full"
+                style={{ background: on ? ind.color : 'rgba(255,255,255,0.18)' }}
+              />
+              {ind.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Mobile depth strips (best 3 each side) */}
@@ -253,8 +447,8 @@ export default function MarketHero() {
       {/* Intro paragraph — anchored near the bottom so the middle of the
           screen is clear for the chart. Name + tagline now live in the
           header (Header.tsx). */}
-      <div className="absolute inset-x-0 bottom-12 z-10 flex justify-center px-4">
-        <p className="font-mono text-[13px] text-text-subtle max-w-md text-center leading-[1.7]">
+      <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center px-4">
+        <p className="font-mono text-[13px] text-white max-w-md text-center leading-[1.7]">
           A finance student and operator who believes in learning by doing.
           Building tools, leading teams, and turning ideas into products.
         </p>

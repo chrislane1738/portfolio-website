@@ -14,7 +14,7 @@ export default function Header() {
 
         {/* Center: title + tagline */}
         <Link href="/" className="flex flex-col items-center group">
-          <span className="font-serif text-[22px] md:text-[26px] text-white group-hover:text-accent transition-colors duration-300 tracking-[1px] leading-tight">
+          <span className="font-serif text-[22px] md:text-[26px] text-white tracking-[1px] leading-tight">
             Chris Lane
           </span>
           <span className="font-mono text-[9px] text-accent tracking-[3px] uppercase mt-1">
