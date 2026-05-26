@@ -70,8 +70,12 @@ export default function MarketHero() {
   const rafRef = useRef<number>(0)
 
   if (!simRef.current) {
-    const sim = createSimulator({ initialPrice: 412.50 })
-    sim.pregenerate(24)
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+    const sim = createSimulator({
+      initialPrice: 412.50,
+      candleCount: isMobile ? 25 : 60,
+    })
+    sim.pregenerate(isMobile ? 10 : 24)
     simRef.current = sim
   }
 
@@ -165,6 +169,24 @@ export default function MarketHero() {
         </span>
       </div>
 
+      {/* Mobile depth strips (best 3 each side) */}
+      <div className="md:hidden absolute top-9 left-0 right-0 z-10 flex justify-around px-3 py-2 text-[9px] font-mono text-accent border-b border-[rgba(255,255,255,0.04)]"
+           aria-hidden="true">
+        {s.bids.slice(0, 3).map((lvl, i) => (
+          <span key={`mb-${i}`}>
+            {lvl.price.toFixed(2)} <span className="text-text-muted">{lvl.size.toLocaleString()}</span>
+          </span>
+        ))}
+      </div>
+      <div className="md:hidden absolute bottom-9 left-0 right-0 z-10 flex justify-around px-3 py-2 text-[9px] font-mono text-[#c97064] border-t border-[rgba(255,255,255,0.04)]"
+           aria-hidden="true">
+        {s.asks.slice(0, 3).map((lvl, i) => (
+          <span key={`ma-${i}`}>
+            {lvl.price.toFixed(2)} <span className="text-text-muted">{lvl.size.toLocaleString()}</span>
+          </span>
+        ))}
+      </div>
+
       {/* Grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -181,8 +203,8 @@ export default function MarketHero() {
       {/* Chart canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute top-9 bottom-9 left-[22%] right-[22%] z-[1] pointer-events-none"
-        style={{ width: '56%', height: 'calc(100% - 4.5rem)' }}
+        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-[22%] z-[1] pointer-events-none"
+        style={{ width: 'auto', height: 'calc(100% - 4.5rem)' }}
         aria-hidden="true"
       />
 
@@ -212,7 +234,7 @@ export default function MarketHero() {
       </div>
 
       {/* Bids ladder (left) */}
-      <ul className="absolute top-9 bottom-9 left-0 w-[22%] z-10 flex flex-col items-end px-3 py-3 m-0 list-none"
+      <ul className="hidden md:flex absolute top-9 bottom-9 left-0 w-[22%] z-10 flex-col items-end px-3 py-3 m-0 list-none"
           aria-hidden="true">
         {s.bids.map((lvl, i) => (
           <li
@@ -230,7 +252,7 @@ export default function MarketHero() {
       </ul>
 
       {/* Asks ladder (right) */}
-      <ul className="absolute top-9 bottom-9 right-0 w-[22%] z-10 flex flex-col items-start px-3 py-3 m-0 list-none"
+      <ul className="hidden md:flex absolute top-9 bottom-9 right-0 w-[22%] z-10 flex-col items-start px-3 py-3 m-0 list-none"
           aria-hidden="true">
         {s.asks.map((lvl, i) => (
           <li
