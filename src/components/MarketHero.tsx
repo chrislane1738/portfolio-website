@@ -319,13 +319,16 @@ function drawPriceAxis(
   range: Range,
   currentPrice: number,
   candleOpen: number,
+  axisX?: number,
 ) {
   const { x: rx, y: ry, w: rw, h: rh } = region
   const { lo, hi } = range
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return
 
   const yOf = (price: number) => ry + rh - ((price - lo) / (hi - lo)) * rh
-  const labelX = rx + rw * LIVE_EDGE_PCT + 10
+  // Default behavior: place labels just right of the live edge. Caller
+  // can pin them to a fixed x (e.g., the right edge on mobile).
+  const labelX = axisX ?? (rx + rw * LIVE_EDGE_PCT + 10)
 
   const interval = niceInterval(hi - lo, 8)
   const start = Math.ceil(lo / interval) * interval
@@ -441,6 +444,7 @@ function drawCrosshair(
   mouse: { x: number; y: number } | null,
   region: Region,
   range: Range,
+  axisX?: number,
 ) {
   if (!mouse) return
   const { x: rx, y: ry, w: rw, h: rh } = region
@@ -465,7 +469,7 @@ function drawCrosshair(
   const price = lo + ((ry + rh - mouse.y) / rh) * (hi - lo)
   const text = `$${price.toFixed(2)}`
   const labelW = 56
-  const labelX = rx + panelW + 2
+  const labelX = axisX ?? (rx + panelW + 2)
   const labelY = mouse.y - 8
   ctx.fillStyle = 'rgba(11,13,18,0.96)'
   ctx.fillRect(labelX, labelY, labelW, 16)
@@ -495,6 +499,12 @@ export default function MarketHero() {
   const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
   const [state, setState] = useState<SimState | null>(null)
   const [now, setNow] = useState<string>('')
+  // Gate dynamic price/percentage rendering on a post-mount flag so the
+  // SSR HTML matches the client's first paint. The simulator uses
+  // Math.random / sine noise during pregenerate(), so server- and
+  // client-generated states diverge and produce a hydration mismatch.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
   const [enabled, setEnabled] = useState<Set<IndicatorId>>(new Set())
   const enabledRef = useRef<Set<IndicatorId>>(enabled)
   useEffect(() => { enabledRef.current = enabled }, [enabled])
@@ -527,10 +537,27 @@ export default function MarketHero() {
     if (!ctx) return
 
     const fit = () => {
+      // Pin CSS dimensions to the layout-computed size BEFORE changing
+      // the bitmap. <canvas> is a replaced element, so once we set
+      // canvas.width its intrinsic size can feed back into a stale CSS
+      // `width: auto` and "lock in" the old layout width. Setting the
+      // CSS in px every fit() keeps layout decoupled from the bitmap.
       const dpr = window.devicePixelRatio || 1
-      const rect = canvas.getBoundingClientRect()
-      canvas.width = Math.floor(rect.width * dpr)
-      canvas.height = Math.floor(rect.height * dpr)
+      // Read layout from the parent: with absolute top/right/bottom/left
+      // offsets, the canvas's intended size is parent_box - offsets.
+      const parent = canvas.parentElement
+      const parentRect = parent?.getBoundingClientRect()
+      const cs = getComputedStyle(canvas)
+      const left = parseFloat(cs.left) || 0
+      const right = parseFloat(cs.right) || 0
+      const top = parseFloat(cs.top) || 0
+      const bottom = parseFloat(cs.bottom) || 0
+      const cssW = parentRect ? Math.max(0, parentRect.width - left - right) : canvas.clientWidth
+      const cssH = parentRect ? Math.max(0, parentRect.height - top - bottom) : canvas.clientHeight
+      canvas.style.width = `${cssW}px`
+      canvas.style.height = `${cssH}px`
+      canvas.width = Math.floor(cssW * dpr)
+      canvas.height = Math.floor(cssH * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
     fit()
@@ -566,20 +593,36 @@ export default function MarketHero() {
       const rsiY = rsiOn ? usableH * 0.75 : 0
       const rsiH = rsiOn ? usableH * 0.25 : 0
 
-      const mainRegion: Region = { x: 0, y: 0, w: rect.width, h: mainH }
+      // On mobile the canvas spans nearly the full viewport. Pin the
+      // y-axis column to the right edge and let candles fill the space
+      // up to that column. On desktop, fall back to the LIVE_EDGE_PCT
+      // layout (live candle in the middle-right, axis just to its right).
+      const chartLeftPad = isMobile ? 14 : 0
+      const MOBILE_Y_AXIS_W = 56
+      const chartW = isMobile ? rect.width - chartLeftPad : rect.width
+      const mobileAxisX = chartLeftPad + chartW - MOBILE_Y_AXIS_W
+      // On mobile, expand the candle area so the live edge sits right
+      // before the y-axis column. We do this by adjusting the region
+      // width so `rw * LIVE_EDGE_PCT` lands at mobileAxisX - small_gap.
+      // i.e. effective_rw = (mobileAxisX - chartLeftPad - gap) / LIVE_EDGE_PCT
+      const mobileEffectiveW = (mobileAxisX - chartLeftPad - 4) / LIVE_EDGE_PCT
+      const regionW = isMobile ? mobileEffectiveW : chartW
+      const axisXOverride = isMobile ? mobileAxisX : undefined
+
+      const mainRegion: Region = { x: chartLeftPad, y: 0, w: regionW, h: mainH }
       const range = computeMainRange(candles, series)
       const live = candles[candles.length - 1]
       drawMainPanel(ctx, candles, series, mainRegion, range)
-      drawPriceAxis(ctx, mainRegion, range, live.c, live.o)
-      if (rsiOn) drawRSIPanel(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
+      drawPriceAxis(ctx, mainRegion, range, live.c, live.o, axisXOverride)
+      if (rsiOn) drawRSIPanel(ctx, candles, { x: chartLeftPad, y: rsiY, w: regionW, h: rsiH })
       drawTimeAxis(
         ctx,
-        { x: 0, y: usableH, w: rect.width, h: TIME_AXIS_H },
+        { x: chartLeftPad, y: usableH, w: regionW, h: TIME_AXIS_H },
         candles.length,
         5,
         new Date(),
       )
-      drawCrosshair(ctx, mouseRef.current, mainRegion, range)
+      drawCrosshair(ctx, mouseRef.current, mainRegion, range, axisXOverride)
     }
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -678,10 +721,15 @@ export default function MarketHero() {
         <span className="flex items-center">
           <span className="text-accent normal-case">$CL</span>
           <span className="mx-3 inline-block w-px h-3 bg-white/15" />
-          <span className="text-accent normal-case">{formatPrice(s.price)}</span>
+          <span className="text-accent normal-case" suppressHydrationWarning>
+            {mounted ? formatPrice(s.price) : ' '}
+          </span>
           <span className="mx-3 inline-block w-px h-3 bg-white/15" />
-          <span className={deltaPct >= 0 ? 'text-accent' : 'text-[#c97064]'}>
-            {deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(2)}%
+          <span
+            className={mounted && deltaPct < 0 ? 'text-[#c97064]' : 'text-accent'}
+            suppressHydrationWarning
+          >
+            {mounted ? `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(2)}%` : ' '}
           </span>
         </span>
         <span className="flex items-center gap-2">
@@ -718,24 +766,6 @@ export default function MarketHero() {
         })}
       </div>
 
-      {/* Mobile depth strips (best 3 each side) */}
-      <div className="md:hidden absolute top-9 left-0 right-0 z-10 flex justify-around px-3 py-2 text-[9px] font-mono text-accent border-b border-[rgba(255,255,255,0.04)]"
-           aria-hidden="true">
-        {s.bids.slice(0, 3).map((lvl, i) => (
-          <span key={`mb-${i}`}>
-            {lvl.price.toFixed(2)} <span className="text-text-muted">{lvl.size.toLocaleString()}</span>
-          </span>
-        ))}
-      </div>
-      <div className="md:hidden absolute bottom-9 left-0 right-0 z-10 flex justify-around px-3 py-2 text-[9px] font-mono text-[#c97064] border-t border-[rgba(255,255,255,0.04)]"
-           aria-hidden="true">
-        {s.asks.slice(0, 3).map((lvl, i) => (
-          <span key={`ma-${i}`}>
-            {lvl.price.toFixed(2)} <span className="text-text-muted">{lvl.size.toLocaleString()}</span>
-          </span>
-        ))}
-      </div>
-
       {/* Grid background */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -752,8 +782,7 @@ export default function MarketHero() {
       {/* Chart canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-0 z-[1] pointer-events-none"
-        style={{ width: 'auto', height: 'calc(100% - 4.5rem)' }}
+        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-0 z-[1] pointer-events-none block"
         aria-hidden="true"
       />
 
@@ -771,14 +800,19 @@ export default function MarketHero() {
       {/* Bottom strip */}
       <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[9px] uppercase tracking-[2px] text-text-muted border-t border-[rgba(255,255,255,0.04)] font-mono"
            aria-hidden="true">
-        <span>LAST {formatPrice(s.price)} · Spread {s.spread.toFixed(2)}</span>
+        <span suppressHydrationWarning>
+          {mounted ? `LAST ${formatPrice(s.price)} · Spread ${s.spread.toFixed(2)}` : ' '}
+        </span>
         <span>SESSION ALIVE</span>
       </div>
 
-      {/* Combined order book ladder (left): asks reversed on top, bids below. */}
+      {/* Combined order book ladder (left): asks reversed on top, bids below.
+          Gated on `mounted` because the simulator generates randomized
+          price levels that differ between SSR and client. */}
       <ul className="hidden md:flex absolute top-9 bottom-9 left-0 w-[22%] z-10 flex-col items-end px-3 py-3 m-0 list-none"
-          aria-hidden="true">
-        {[...s.asks].reverse().map((lvl, i) => {
+          aria-hidden="true"
+          suppressHydrationWarning>
+        {mounted && [...s.asks].reverse().map((lvl, i) => {
           const askIndex = s.asks.length - 1 - i
           return (
             <li
@@ -794,7 +828,7 @@ export default function MarketHero() {
             </li>
           )
         })}
-        {s.bids.map((lvl, i) => (
+        {mounted && s.bids.map((lvl, i) => (
           <li
             key={`b-${i}`}
             className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-bid ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}

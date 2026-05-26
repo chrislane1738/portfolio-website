@@ -126,4 +126,17 @@ main {
   animation: absorbFlashAsk 600ms ease-out;
 }
 
+/* Favorites filter toast — fade in, hold, fade out within 1.5s.
+   The `key` on the toast forces a remount so the animation restarts
+   if the user toggles again before the timer elapses. */
+@keyframes favoritesToast {
+  0%   { opacity: 0; transform: translate(-50%, 8px); }
+  18%  { opacity: 1; transform: translate(-50%, 0); }
+  75%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 4px); }
+}
+.favorites-toast {
+  animation: favoritesToast 1500ms ease-out forwards;
+}
+
 
