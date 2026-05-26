@@ -6,9 +6,10 @@ import { createSimulator, type SimState } from '@/lib/marketSim'
 type Candle = SimState['candles'][number]
 
 // Live edge of the chart (newest candle) sits this fraction across the
-// canvas. With the canvas spanning left-[22%] right-0 on desktop, 0.4
-// puts the live edge near the screen center, right under the name.
-const LIVE_EDGE_PCT = 0.4
+// canvas. With the canvas spanning left-[22%] right-0 on desktop, 0.7
+// puts the live edge at ~screen-77% so candles sweep across most of the
+// middle of the screen.
+const LIVE_EDGE_PCT = 0.7
 
 function drawCandles(
   ctx: CanvasRenderingContext2D,
@@ -189,13 +190,15 @@ export default function MarketHero() {
   const deltaPct = ((s.price - initial) / initial) * 100
 
   return (
-    <section className="relative h-[calc(100vh-3.5rem)] mt-14 bg-bg-deep overflow-hidden">
+    <section className="relative h-[calc(100vh-72px)] mt-[72px] bg-bg-deep overflow-hidden">
       {/* Top strip */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
            aria-hidden="true">
-        <span>
-          <span className="text-accent normal-case">$CL</span>{' '}
-          <span className="text-accent normal-case">{formatPrice(s.price)}</span>{' '}
+        <span className="flex items-center">
+          <span className="text-accent normal-case">$CL</span>
+          <span className="mx-3 inline-block w-px h-3 bg-white/15" />
+          <span className="text-accent normal-case">{formatPrice(s.price)}</span>
+          <span className="mx-3 inline-block w-px h-3 bg-white/15" />
           <span className={deltaPct >= 0 ? 'text-accent' : 'text-[#c97064]'}>
             {deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(2)}%
           </span>
@@ -247,18 +250,10 @@ export default function MarketHero() {
 
       <div className="chart-overlay" aria-hidden="true" />
 
-      {/* Center column — name + tagline pinned near the top so they don't
-          collide with the candle area; intro paragraph anchored near the
-          bottom so it has breathing room. */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-between px-4 pt-[12vh] pb-[14vh]">
-        <div className="text-center">
-          <h1 className="font-serif text-[32px] md:text-[40px] text-white tracking-[1px]">
-            Chris Lane
-          </h1>
-          <p className="font-mono text-[11px] text-accent tracking-[4px] uppercase mt-3">
-            Finance · Builder · Operator
-          </p>
-        </div>
+      {/* Intro paragraph — anchored near the bottom so the middle of the
+          screen is clear for the chart. Name + tagline now live in the
+          header (Header.tsx). */}
+      <div className="absolute inset-x-0 bottom-12 z-10 flex justify-center px-4">
         <p className="font-mono text-[13px] text-text-subtle max-w-md text-center leading-[1.7]">
           A finance student and operator who believes in learning by doing.
           Building tools, leading teams, and turning ideas into products.
