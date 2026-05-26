@@ -118,6 +118,11 @@ function computeMainRange(candles: Candle[], series: Series): Range {
     if (c.l < lo) lo = c.l
     if (c.h > hi) hi = c.h
   }
+  // Include line overlays that hug price (MA, VWAP center) so they're
+  // visible. Deliberately exclude the VWAP std-dev bands — they're often
+  // far wider than the candle range and would compress candles into a
+  // tiny vertical sliver. Bands get drawn anyway but are clipped to the
+  // chart region.
   const include = (arr?: number[]) => {
     if (!arr) return
     for (const v of arr) {
@@ -128,8 +133,7 @@ function computeMainRange(candles: Candle[], series: Series): Range {
   }
   include(series.ma20)
   include(series.ma50)
-  include(series.vwapUpper)
-  include(series.vwapLower)
+  include(series.vwap)
   if (lo === hi) { lo -= 1; hi += 1 }
   const pad = (hi - lo) * 0.1
   return { lo: lo - pad, hi: hi + pad }
@@ -145,6 +149,13 @@ function drawMainPanel(
   const { x: rx, y: ry, w: rw, h: rh } = region
   const { lo, hi } = range
   if (candles.length === 0) return
+
+  // Clip to the panel rect so the VWAP bands (which can extend past the
+  // candle range) don't bleed into the strips above/below.
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(rx, ry, rw, rh)
+  ctx.clip()
 
   const yOf = (price: number) => ry + rh - ((price - lo) / (hi - lo)) * rh
 
@@ -223,6 +234,8 @@ function drawMainPanel(
   if (series.vwap) drawLine(series.vwap, COLORS.vwap, [], 0.85)
   if (series.vwapUpper) drawLine(series.vwapUpper, COLORS.vwap, [3, 3], 0.45, 1)
   if (series.vwapLower) drawLine(series.vwapLower, COLORS.vwap, [3, 3], 0.45, 1)
+
+  ctx.restore()
 }
 
 function drawRSIPanel(
