@@ -205,7 +205,7 @@ export default function MarketHero() {
       {/* Chart canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-[22%] z-[1] pointer-events-none"
+        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-0 z-[1] pointer-events-none"
         style={{ width: 'auto', height: 'calc(100% - 4.5rem)' }}
         aria-hidden="true"
       />
@@ -235,9 +235,26 @@ export default function MarketHero() {
         <span>SESSION ALIVE</span>
       </div>
 
-      {/* Bids ladder (left) */}
+      {/* Combined order book ladder (left): asks reversed on top, bids below.
+          Classic centered-spread layout — prices descend top to bottom. */}
       <ul className="hidden md:flex absolute top-9 bottom-9 left-0 w-[22%] z-10 flex-col items-end px-3 py-3 m-0 list-none"
           aria-hidden="true">
+        {[...s.asks].reverse().map((lvl, i) => {
+          const askIndex = s.asks.length - 1 - i
+          return (
+            <li
+              key={`a-${askIndex}`}
+              className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
+            >
+              <span
+                className="absolute inset-y-0 left-0 -z-10 book-bar book-bar-ask"
+                style={{ width: `${lvl.widthPct * 100}%` }}
+              />
+              <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
+              <span className="text-[#c97064]">{lvl.price.toFixed(2)}</span>
+            </li>
+          )
+        })}
         {s.bids.map((lvl, i) => (
           <li
             key={`b-${i}`}
@@ -249,24 +266,6 @@ export default function MarketHero() {
             />
             <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
             <span className="text-accent">{lvl.price.toFixed(2)}</span>
-          </li>
-        ))}
-      </ul>
-
-      {/* Asks ladder (right) */}
-      <ul className="hidden md:flex absolute top-9 bottom-9 right-0 w-[22%] z-10 flex-col items-start px-3 py-3 m-0 list-none"
-          aria-hidden="true">
-        {s.asks.map((lvl, i) => (
-          <li
-            key={`a-${i}`}
-            className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
-          >
-            <span
-              className="absolute inset-y-0 right-0 -z-10 book-bar book-bar-ask"
-              style={{ width: `${lvl.widthPct * 100}%` }}
-            />
-            <span className="text-[#c97064]">{lvl.price.toFixed(2)}</span>
-            <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
           </li>
         ))}
       </ul>
