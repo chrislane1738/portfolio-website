@@ -368,6 +368,74 @@ function drawPriceAxis(
   ctx.restore()
 }
 
+// Pick a "nice" round time interval in seconds. Candidates step up
+// through common axis intervals (5s, 10s, 30s, 1m, 2m, 5m...) so labels
+// land on clean boundaries.
+function niceTimeInterval(rangeSeconds: number, targetCount = 6): number {
+  const candidates = [5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600]
+  for (const c of candidates) {
+    if (rangeSeconds / c <= targetCount) return c
+  }
+  return 3600
+}
+
+function formatTimeLabel(d: Date, intervalSec: number): string {
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  if (intervalSec >= 60) return `${hh}:${mm}`
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${hh}:${mm}:${ss}`
+}
+
+function drawTimeAxis(
+  ctx: CanvasRenderingContext2D,
+  region: Region,
+  candleCount: number,
+  candleSeconds: number,
+  now: Date,
+) {
+  if (candleCount === 0) return
+  const { x: rx, y: ry, w: rw, h: rh } = region
+  const candleAreaWidth = rw * LIVE_EDGE_PCT
+  const slot = candleAreaWidth / candleCount
+
+  // Snap "now" to the nearest candle boundary so labels don't drift
+  // continuously within a 5-second window — they only re-position when a
+  // candle closes, matching the chart shift.
+  const nowSec = Math.floor(now.getTime() / 1000)
+  const snappedNow = Math.floor(nowSec / candleSeconds) * candleSeconds
+  const earliestSec = snappedNow - (candleCount - 1) * candleSeconds
+  const totalSec = candleCount * candleSeconds
+  const interval = niceTimeInterval(totalSec, 6)
+  const startSec = Math.ceil(earliestSec / interval) * interval
+
+  ctx.save()
+  ctx.font = '9.5px ui-monospace, SFMono-Regular, Menlo, monospace'
+  ctx.fillStyle = 'rgba(255,255,255,0.42)'
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
+
+  for (let t = startSec; t <= snappedNow; t += interval) {
+    const secondsAgo = snappedNow - t
+    const candleIndex = (candleCount - 1) - secondsAgo / candleSeconds
+    if (candleIndex < 0 || candleIndex >= candleCount) continue
+    const x = rx + candleIndex * slot + slot / 2
+    if (x < rx + 24 || x > rx + candleAreaWidth - 24) continue
+
+    // small tick mark connecting to the chart area above
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(x, ry)
+    ctx.lineTo(x, ry + 4)
+    ctx.stroke()
+
+    ctx.fillText(formatTimeLabel(new Date(t * 1000), interval), x, ry + 11)
+  }
+
+  ctx.restore()
+}
+
 function drawCrosshair(
   ctx: CanvasRenderingContext2D,
   mouse: { x: number; y: number } | null,
@@ -489,10 +557,14 @@ export default function MarketHero() {
         series.vwapLower = lower.slice(-visible)
       }
 
+      // Reserve a strip at the bottom of the canvas for the time x-axis.
+      const TIME_AXIS_H = 18
+      const usableH = rect.height - TIME_AXIS_H
+
       const rsiOn = en.has('rsi')
-      const mainH = rsiOn ? rect.height * 0.72 : rect.height
-      const rsiY = rsiOn ? rect.height * 0.75 : 0
-      const rsiH = rsiOn ? rect.height * 0.25 : 0
+      const mainH = rsiOn ? usableH * 0.72 : usableH
+      const rsiY = rsiOn ? usableH * 0.75 : 0
+      const rsiH = rsiOn ? usableH * 0.25 : 0
 
       const mainRegion: Region = { x: 0, y: 0, w: rect.width, h: mainH }
       const range = computeMainRange(candles, series)
@@ -500,6 +572,13 @@ export default function MarketHero() {
       drawMainPanel(ctx, candles, series, mainRegion, range)
       drawPriceAxis(ctx, mainRegion, range, live.c, live.o)
       if (rsiOn) drawRSIPanel(ctx, candles, { x: 0, y: rsiY, w: rect.width, h: rsiH })
+      drawTimeAxis(
+        ctx,
+        { x: 0, y: usableH, w: rect.width, h: TIME_AXIS_H },
+        candles.length,
+        5,
+        new Date(),
+      )
       drawCrosshair(ctx, mouseRef.current, mainRegion, range)
     }
 
