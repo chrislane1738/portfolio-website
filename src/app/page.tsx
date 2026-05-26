@@ -1,10 +1,10 @@
-import Hero from '@/components/Hero'
+import MarketHero from '@/components/MarketHero'
 import TimelineTeaser from '@/components/TimelineTeaser'
 
 export default function Home() {
   return (
     <>
-      <Hero />
+      <MarketHero />
       <TimelineTeaser />
     </>
   )

@@ -322,13 +322,12 @@ In `src/lib/marketSim.ts`, replace the closure body with a real implementation. 
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
     state.tickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     lastTickAt = now
   }
@@ -415,13 +414,12 @@ In `src/lib/marketSim.ts`, modify `advance(now)` so that when `tickIndex` rolls 
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
@@ -628,21 +626,22 @@ Then replace the `advance` function with:
     const reversion = meanReversionDelta(state.price, baseStep)
     let nextPrice = state.price + noiseDelta + reversion
 
-    // Hard clamp as last resort
-    const hardMax = midPrice + halfRange * 0.97
-    const hardMin = midPrice - halfRange * 0.97
+    // Hard clamp as last resort — anchored to initialPrice so the wall
+    // doesn't drift with midPrice. Under realistic noise midPrice barely
+    // moves so this matters only in pathological constant-direction cases.
+    const hardMax = opts.initialPrice + halfRange * 0.97
+    const hardMin = opts.initialPrice - halfRange * 0.97
     if (nextPrice > hardMax) nextPrice = hardMax
     if (nextPrice < hardMin) nextPrice = hardMin
 
     state.price = nextPrice
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
@@ -707,23 +706,19 @@ describe('volatility regimes', () => {
     let lastRegime = sim.getState().regime
     let lastFlipCandleIndex = 0
     const flips: number[] = []
-    let closedCandles = 0
-    let prevCandleCount = sim.getState().candles.length
 
     for (let i = 1; i <= 1000; i++) {
       sim.tick(i * 1000)
-      const cs = sim.getState().candles.length
-      if (cs > prevCandleCount) {
-        closedCandles += 1
-        prevCandleCount = cs
-      }
+      // Each candle is 5 ticks, so floor(i / 5) closed candles so far.
+      // Don't read off state.candles.length — it stops growing once the
+      // rolling buffer fills at candleCount.
+      const closedCandles = Math.floor(i / 5)
       if (sim.getState().regime !== lastRegime) {
         flips.push(closedCandles - lastFlipCandleIndex)
         lastFlipCandleIndex = closedCandles
         lastRegime = sim.getState().regime
       }
     }
-    // every observed regime run length should be at least 4
     for (const len of flips) expect(len).toBeGreaterThanOrEqual(4)
   })
 })
@@ -739,7 +734,8 @@ Expected: the regime tests FAIL — regime is hardcoded to `'calm'`.
 In `src/lib/marketSim.ts`, add to the closure state in `createSimulator`:
 
 ```ts
-  let regimeRemaining = 0  // candles until regime can flip
+  let regimeRemaining = 4  // candles until regime can flip; init = 4 so the
+                           // initial 'calm' regime also observes the dwell
 ```
 
 Add this helper inside `createSimulator`:
@@ -1039,15 +1035,18 @@ Wait — by this point `state.price` has already been updated to `nextPrice`. Ca
     state.price = nextPrice
 
     const c = state.candles[state.candles.length - 1]
-    if (state.tickIndex === 0) {
-      c.o = c.h = c.l = c.c = nextPrice
-    } else {
-      c.h = Math.max(c.h, nextPrice)
-      c.l = Math.min(c.l, nextPrice)
-      c.c = nextPrice
-    }
-    recenterBook()
+    // The current candle is always pre-seeded with OHLC = open at the moment
+    // it's created (the initial candle in createSimulator, subsequent candles
+    // in the candle-close push in Task 4). So advance() just extends.
+    c.h = Math.max(c.h, nextPrice)
+    c.l = Math.min(c.l, nextPrice)
+    c.c = nextPrice
+    // Absorption detection MUST run before recenterBook(): we need the
+    // pre-recenter book prices so piercings (price crossing through old
+    // levels) are detectable. After recenter, all new ask prices are above
+    // the new mid and all new bid prices below, so nothing would ever pierce.
     applyAbsorptionsAndTouched(prevPrice, nextPrice, now)
+    recenterBook()
 
     const nextTickIndex = ((state.tickIndex + 1) % 5) as SimState['tickIndex']
     if (nextTickIndex === 0) {
@@ -1382,9 +1381,9 @@ In `src/components/MarketHero.tsx`, add this just before the closing `</section>
       {/* Bids ladder (left) */}
       <ul className="absolute top-9 bottom-9 left-0 w-[22%] z-10 flex flex-col items-end px-3 py-3 m-0 list-none"
           aria-hidden="true">
-        {s.bids.map((lvl) => (
+        {s.bids.map((lvl, i) => (
           <li
-            key={`b-${lvl.price.toFixed(2)}`}
+            key={`b-${i}`}
             className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-bid ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
           >
             <span
@@ -1400,9 +1399,9 @@ In `src/components/MarketHero.tsx`, add this just before the closing `</section>
       {/* Asks ladder (right) */}
       <ul className="absolute top-9 bottom-9 right-0 w-[22%] z-10 flex flex-col items-start px-3 py-3 m-0 list-none"
           aria-hidden="true">
-        {s.asks.map((lvl) => (
+        {s.asks.map((lvl, i) => (
           <li
-            key={`a-${lvl.price.toFixed(2)}`}
+            key={`a-${i}`}
             className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
           >
             <span
@@ -1540,9 +1539,20 @@ Then, inside the `MarketHero` component, add the canvas ref and the rAF loop. Re
     fit()
     window.addEventListener('resize', fit)
 
+    let lastPrice = simRef.current.getState().price
+    let lastTickIndex = simRef.current.getState().tickIndex
+
     const loop = (t: number) => {
       const next = simRef.current!.tick(t)
-      setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+      // Only setState when the simulator actually advanced (~1Hz). React
+      // renders strips + ladders at sim tick frequency, not every frame.
+      if (next.price !== lastPrice || next.tickIndex !== lastTickIndex) {
+        setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+        lastPrice = next.price
+        lastTickIndex = next.tickIndex
+      }
+      // Canvas redraws every frame for smooth wick animation (Task 15
+      // refines the interpolation).
       const rect = canvas.getBoundingClientRect()
       drawCandles(ctx, next.candles, rect.width, rect.height)
       rafRef.current = requestAnimationFrame(loop)
