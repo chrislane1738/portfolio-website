@@ -64,7 +64,7 @@ function formatTime() {
 export default function MarketHero() {
   const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
   const [state, setState] = useState<SimState | null>(null)
-  const [now, setNow] = useState<string>(formatTime())
+  const [now, setNow] = useState<string>('')
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const rafRef = useRef<number>(0)
@@ -97,6 +97,8 @@ export default function MarketHero() {
     }
     fit()
     window.addEventListener('resize', fit)
+
+    setNow(formatTime())
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
