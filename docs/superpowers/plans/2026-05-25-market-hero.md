@@ -1539,9 +1539,20 @@ Then, inside the `MarketHero` component, add the canvas ref and the rAF loop. Re
     fit()
     window.addEventListener('resize', fit)
 
+    let lastPrice = simRef.current.getState().price
+    let lastTickIndex = simRef.current.getState().tickIndex
+
     const loop = (t: number) => {
       const next = simRef.current!.tick(t)
-      setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+      // Only setState when the simulator actually advanced (~1Hz). React
+      // renders strips + ladders at sim tick frequency, not every frame.
+      if (next.price !== lastPrice || next.tickIndex !== lastTickIndex) {
+        setState({ ...next, bids: [...next.bids], asks: [...next.asks], candles: [...next.candles] })
+        lastPrice = next.price
+        lastTickIndex = next.tickIndex
+      }
+      // Canvas redraws every frame for smooth wick animation (Task 15
+      // refines the interpolation).
       const rect = canvas.getBoundingClientRect()
       drawCandles(ctx, next.candles, rect.width, rect.height)
       rafRef.current = requestAnimationFrame(loop)
