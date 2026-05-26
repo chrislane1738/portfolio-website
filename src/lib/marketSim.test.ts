@@ -209,8 +209,6 @@ describe('book absorption', () => {
     // Force a big upward move that will pierce at least one ask level
     const sim = createSimulator({ noise: () => 1.0, seed: 1 })
     sim.tick(0)
-    const before = sim.getState()
-    const initialAskPrices = before.asks.map(a => a.price)
     sim.tick(1000)
 
     // Some level whose price was crossed should have flashUntil set
