@@ -152,7 +152,7 @@ export default function MarketHero() {
   const deltaPct = ((s.price - initial) / initial) * 100
 
   return (
-    <section className="relative h-screen bg-bg-deep overflow-hidden">
+    <section className="relative h-[calc(100vh-3.5rem)] mt-14 bg-bg-deep overflow-hidden">
       {/* Top strip */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
            aria-hidden="true">

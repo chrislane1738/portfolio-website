@@ -119,16 +119,18 @@ main {
   animation: absorbFlashAsk 600ms ease-out;
 }
 
-/* Chart overlay — dims chart behind the center text block */
+/* Chart overlay — dims chart behind the center text block.
+   Tight ellipse hugging the name + intro so candles remain visible
+   around the edges of the chart area. */
 .chart-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: radial-gradient(
-    ellipse 40% 60% at 50% 50%,
-    rgba(14,17,22,0.85) 0%,
-    rgba(14,17,22,0.55) 40%,
-    transparent 80%
+    ellipse 26% 38% at 50% 55%,
+    rgba(14,17,22,0.70) 0%,
+    rgba(14,17,22,0.35) 50%,
+    transparent 85%
   );
   z-index: 2;
 }

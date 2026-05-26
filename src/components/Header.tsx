@@ -2,28 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
 
 export default function Header() {
   const pathname = usePathname()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 px-6 transition-all duration-300 ${
-        scrolled
-          ? 'bg-[rgba(11,13,18,0.92)] border-b border-[rgba(255,255,255,0.06)]'
-          : 'bg-transparent border-b border-transparent'
-      }`}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 px-6 bg-[rgba(11,13,18,0.92)] backdrop-blur-sm border-b border-[rgba(255,255,255,0.06)]">
       <div className="max-w-[1200px] mx-auto flex justify-between items-center py-[14px]">
         {/* Left: Name + Tagline */}
         <Link href="/" className="flex items-center gap-4 group">
