@@ -5,6 +5,11 @@ import { createSimulator, type SimState } from '@/lib/marketSim'
 
 type Candle = SimState['candles'][number]
 
+// Live edge of the chart (newest candle) sits this fraction across the
+// canvas. With the canvas spanning left-[22%] right-0 on desktop, 0.4
+// puts the live edge near the screen center, right under the name.
+const LIVE_EDGE_PCT = 0.4
+
 function drawCandles(
   ctx: CanvasRenderingContext2D,
   candles: Candle[],
@@ -27,7 +32,11 @@ function drawCandles(
   const yOf = (price: number) =>
     height - ((price - lo) / (hi - lo)) * height
 
-  const slot = width / candles.length
+  // Candles only fill the LEFT LIVE_EDGE_PCT of the canvas. The right
+  // remainder is empty space — visually the live candle "generates" near
+  // the middle of the screen, not the right edge.
+  const candleAreaWidth = width * LIVE_EDGE_PCT
+  const slot = candleAreaWidth / candles.length
   const bodyW = Math.max(2, slot - 2)
 
   for (let i = 0; i < candles.length; i++) {
@@ -37,7 +46,7 @@ function drawCandles(
     const color = isUp ? '#5bcf87' : '#c97064'
     // fade leftmost candles
     const fadeIn = Math.min(1, i / 6)
-    ctx.globalAlpha = fadeIn * (i === candles.length - 1 ? 0.85 : 0.55)
+    ctx.globalAlpha = fadeIn * (i === candles.length - 1 ? 0.9 : 0.55)
 
     // wick
     ctx.fillStyle = color
@@ -73,9 +82,9 @@ export default function MarketHero() {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
     const sim = createSimulator({
       initialPrice: 412.50,
-      candleCount: isMobile ? 25 : 60,
+      candleCount: isMobile ? 18 : 30,
     })
-    sim.pregenerate(isMobile ? 10 : 24)
+    sim.pregenerate(isMobile ? 7 : 12)
     simRef.current = sim
   }
 
@@ -121,6 +130,15 @@ export default function MarketHero() {
     let lastPrice = simRef.current.getState().price
     let lastTickIndex = simRef.current.getState().tickIndex
 
+    // Live-candle interpolation: each tick snaps the simulator's OHLC to
+    // new values once per second. To make the wick visibly *grow* between
+    // ticks instead of teleporting, we lerp displayed OHLC toward target
+    // every frame. When the live candle reference changes (new candle
+    // pushed by candle-close), we snap without lerping.
+    const LERP = 0.18
+    let liveRef: Candle | null = null
+    let dispH = 0, dispL = 0, dispC = 0
+
     const loop = (t: number) => {
       const docVisible = typeof document !== 'undefined' && document.visibilityState === 'visible'
       if (inView && docVisible) {
@@ -130,8 +148,27 @@ export default function MarketHero() {
           lastPrice = next.price
           lastTickIndex = next.tickIndex
         }
+
+        const live = next.candles[next.candles.length - 1]
+        if (live !== liveRef) {
+          // New candle pushed — snap displayed OHLC to its starting values.
+          dispH = live.h
+          dispL = live.l
+          dispC = live.c
+          liveRef = live
+        } else {
+          dispH += (live.h - dispH) * LERP
+          dispL += (live.l - dispL) * LERP
+          dispC += (live.c - dispC) * LERP
+        }
+
+        // Replace the live candle in the draw array with the interpolated
+        // version so the chart shows smooth wick growth between ticks.
+        const drawArr = next.candles.slice(0, -1)
+        drawArr.push({ o: live.o, h: dispH, l: dispL, c: dispC, closed: false })
+
         const rect = canvas.getBoundingClientRect()
-        drawCandles(ctx, next.candles, rect.width, rect.height)
+        drawCandles(ctx, drawArr, rect.width, rect.height)
       }
       rafRef.current = requestAnimationFrame(loop)
     }
@@ -154,19 +191,16 @@ export default function MarketHero() {
   return (
     <section className="relative h-[calc(100vh-3.5rem)] mt-14 bg-bg-deep overflow-hidden">
       {/* Top strip */}
-      <div className="absolute top-0 left-0 right-0 z-20 grid grid-cols-3 items-center px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
            aria-hidden="true">
-        <span className="justify-self-start">
+        <span>
           <span className="text-accent normal-case">$CL</span>{' '}
           <span className="text-accent normal-case">{formatPrice(s.price)}</span>{' '}
           <span className={deltaPct >= 0 ? 'text-accent' : 'text-[#c97064]'}>
             {deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(2)}%
           </span>
         </span>
-        <span className="justify-self-center text-text-muted tracking-[1px] normal-case">
-          Spread {s.spread.toFixed(2)} · Mid {((s.bestBid + s.bestAsk) / 2).toFixed(2)}
-        </span>
-        <span className="justify-self-end flex items-center gap-2">
+        <span className="flex items-center gap-2">
           {now}
           <span className="inline-block w-[6px] h-[6px] rounded-full bg-accent live-pip" />
         </span>
