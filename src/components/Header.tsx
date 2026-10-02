@@ -75,12 +75,16 @@ export default function Header() {
             >
               About
             </Link>
-            <a
-              href="mailto:chrislane1738@gmail.com"
-              className="font-mono text-[10px] text-accent tracking-[1px] px-3 py-1 border border-[rgba(91, 207, 135,0.3)] hover:bg-[rgba(91, 207, 135,0.05)] hover:border-accent transition-all duration-300"
+            <Link
+              href="/contact"
+              className={`font-mono text-[11px] tracking-[1px] px-3 py-1 border transition-all duration-300 ${
+                pathname === '/contact'
+                  ? 'text-accent border-accent'
+                  : 'text-text-body border-[rgba(91, 207, 135,0.3)] hover:bg-[rgba(91, 207, 135,0.05)] hover:border-accent'
+              }`}
             >
               Contact
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -111,13 +115,17 @@ export default function Header() {
           >
             About
           </Link>
-          <a
-            href="mailto:chrislane1738@gmail.com"
+          <Link
+            href="/contact"
             onClick={() => setMenuOpen(false)}
-            className="font-mono text-[13px] text-accent tracking-[2px] uppercase px-6 py-3 border border-[rgba(91,207,135,0.4)] hover:bg-[rgba(91,207,135,0.06)]"
+            className={`font-mono text-[13px] tracking-[2px] uppercase px-6 py-3 border transition-colors duration-200 ${
+              pathname === '/contact'
+                ? 'text-accent border-accent'
+                : 'text-accent border-[rgba(91,207,135,0.4)] hover:bg-[rgba(91,207,135,0.06)]'
+            }`}
           >
             Contact
-          </a>
+          </Link>
         </div>
       </div>
     </>

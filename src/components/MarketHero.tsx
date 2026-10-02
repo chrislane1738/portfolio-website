@@ -1,14 +1,14 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { createSimulator, type SimState } from '@/lib/marketSim'
 
 type Candle = SimState['candles'][number]
 
 // Live edge of the chart (newest candle) sits this fraction across the
-// canvas. With the canvas spanning left-[22%] right-0 on desktop, 0.7
-// puts the live edge at ~screen-77% so candles sweep across most of the
-// middle of the screen.
+// canvas. The canvas is full-bleed, so 0.7 puts the live edge at ~70% of
+// the hero width and candles sweep across most of the screen.
 const LIVE_EDGE_PCT = 0.7
 
 // How many candles are visible on screen at once. The simulator's buffer
@@ -486,19 +486,11 @@ function formatPrice(p: number) {
   return `$${p.toFixed(2)}`
 }
 
-function formatTime() {
-  const d = new Date()
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${hh}:${mm} ET`
-}
-
 // ── Component ──────────────────────────────────────────────────────────
 
 export default function MarketHero() {
   const simRef = useRef<ReturnType<typeof createSimulator> | null>(null)
   const [state, setState] = useState<SimState | null>(null)
-  const [now, setNow] = useState<string>('')
   // Gate dynamic price/percentage rendering on a post-mount flag so the
   // SSR HTML matches the client's first paint. The simulator uses
   // Math.random / sine noise during pregenerate(), so server- and
@@ -563,8 +555,6 @@ export default function MarketHero() {
     fit()
     window.addEventListener('resize', fit)
 
-    setNow(formatTime())
-
     const draw = (allCandles: Candle[]) => {
       const rect = canvas.getBoundingClientRect()
       ctx.clearRect(0, 0, rect.width, rect.height)
@@ -593,10 +583,10 @@ export default function MarketHero() {
       const rsiY = rsiOn ? usableH * 0.75 : 0
       const rsiH = rsiOn ? usableH * 0.25 : 0
 
-      // On mobile the canvas spans nearly the full viewport. Pin the
-      // y-axis column to the right edge and let candles fill the space
-      // up to that column. On desktop, fall back to the LIVE_EDGE_PCT
-      // layout (live candle in the middle-right, axis just to its right).
+      // The canvas is full-bleed on all screens. Pin the y-axis column
+      // to the right edge on mobile and let candles fill the space up to
+      // that column. On desktop the live candle sits at LIVE_EDGE_PCT of
+      // the full width, with the axis just to its right.
       const chartLeftPad = isMobile ? 14 : 0
       const MOBILE_Y_AXIS_W = 56
       const chartW = isMobile ? rect.width - chartLeftPad : rect.width
@@ -679,13 +669,10 @@ export default function MarketHero() {
     }
     rafRef.current = requestAnimationFrame(loop)
 
-    const timeId = setInterval(() => setNow(formatTime()), 30000)
-
     return () => {
       cancelAnimationFrame(rafRef.current)
       io.disconnect()
       window.removeEventListener('resize', fit)
-      clearInterval(timeId)
     }
   }, [])
 
@@ -714,8 +701,8 @@ export default function MarketHero() {
   const handleMouseLeave = () => { mouseRef.current = null }
 
   return (
-    <section className="relative h-[calc(100vh-72px)] mt-[72px] bg-bg-deep overflow-hidden">
-      {/* Top strip */}
+    <section className="relative h-[62vh] min-h-[480px] mt-[72px] bg-bg-deep overflow-hidden">
+      {/* Top strip — simplified ticker only */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[10px] uppercase tracking-[2px] text-text-body border-b border-[rgba(255,255,255,0.04)] bg-[rgba(255,255,255,0.015)] font-mono"
            aria-hidden="true">
         <span className="flex items-center">
@@ -731,10 +718,6 @@ export default function MarketHero() {
           >
             {mounted ? `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(2)}%` : ' '}
           </span>
-        </span>
-        <span className="flex items-center gap-2">
-          {now}
-          <span className="inline-block w-[6px] h-[6px] rounded-full bg-accent live-pip" />
         </span>
       </div>
 
@@ -782,66 +765,52 @@ export default function MarketHero() {
       {/* Chart canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute top-9 bottom-9 left-2 right-2 md:left-[22%] md:right-0 z-[1] pointer-events-none block"
+        className="absolute top-9 bottom-0 left-2 right-2 z-[1] pointer-events-none block"
         aria-hidden="true"
       />
 
-      {/* Crosshair mouse-capture overlay — sized to match the canvas, sits
-          just above it so we can read cursor position. cursor-crosshair to
-          hint at the feature. Toggle column has higher z so it stays
-          clickable. */}
+      {/* Crosshair mouse-capture overlay — sized to match the full-bleed
+          canvas, sits just above it so we can read cursor position.
+          cursor-crosshair to hint at the feature. Toggle column has
+          higher z so it stays clickable. */}
       <div
-        className="hidden md:block absolute top-9 bottom-9 left-[22%] right-0 z-[3] cursor-crosshair"
+        className="hidden md:block absolute top-9 bottom-0 left-2 right-2 z-[3] cursor-crosshair"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         aria-hidden="true"
       />
-
-      {/* Bottom strip */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-2.5 text-[9px] uppercase tracking-[2px] text-text-muted border-t border-[rgba(255,255,255,0.04)] font-mono"
-           aria-hidden="true">
-        <span suppressHydrationWarning>
-          {mounted ? `LAST ${formatPrice(s.price)} · Spread ${s.spread.toFixed(2)}` : ' '}
-        </span>
-        <span>SESSION ALIVE</span>
+      {/* Text overlay — dark gradient keeps copy legible over the live chart.
+          The chart stays ambient; this block is the hero's one clear message. */}
+      <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-r from-bg-deep via-[rgba(11,13,18,0.72)] to-transparent">
+        <div className="h-full flex items-center px-6 md:px-16">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[11px] tracking-[3px] text-accent uppercase mb-5">
+              Finance · Builder · Operator
+            </p>
+            <h1 className="font-serif text-[42px] md:text-[64px] leading-[1.05] text-white">
+              I build tools that make investing sharper.
+            </h1>
+            <p className="font-mono text-[14px] md:text-[15px] text-text-body mt-6 leading-[1.8] max-w-xl">
+              Finance student and operator. I learn by doing, building tools,
+              leading teams, and turning ideas into products.
+            </p>
+            <div className="flex flex-wrap gap-4 mt-9 pointer-events-auto">
+              <Link
+                href="/projects"
+                className="font-mono text-[12px] tracking-[1px] px-6 py-3 bg-accent text-[#0b0d12] hover:bg-white transition-colors duration-300"
+              >
+                Explore my tools
+              </Link>
+              <Link
+                href="/contact"
+                className="font-mono text-[12px] tracking-[1px] px-6 py-3 border border-[rgba(255,255,255,0.25)] text-white hover:border-accent hover:text-accent transition-colors duration-300"
+              >
+                Get in touch
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Combined order book ladder (left): asks reversed on top, bids below.
-          Gated on `mounted` because the simulator generates randomized
-          price levels that differ between SSR and client. */}
-      <ul className="hidden md:flex absolute top-9 bottom-9 left-0 w-[22%] z-10 flex-col items-end px-3 py-3 m-0 list-none"
-          aria-hidden="true"
-          suppressHydrationWarning>
-        {mounted && [...s.asks].reverse().map((lvl, i) => {
-          const askIndex = s.asks.length - 1 - i
-          return (
-            <li
-              key={`a-${askIndex}`}
-              className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-ask ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
-            >
-              <span
-                className="absolute inset-y-0 left-0 -z-10 book-bar book-bar-ask"
-                style={{ width: `${lvl.widthPct * 100}%` }}
-              />
-              <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
-              <span className="text-[#c97064]">{lvl.price.toFixed(2)}</span>
-            </li>
-          )
-        })}
-        {mounted && s.bids.map((lvl, i) => (
-          <li
-            key={`b-${i}`}
-            className={`relative w-full flex justify-between text-[9.5px] font-mono py-[3px] px-[6px] mb-[1px] book-row book-row-bid ${lvl.touched ? 'is-touched' : ''} ${lvl.flashUntil > 0 ? 'is-flashing' : ''}`}
-          >
-            <span
-              className="absolute inset-y-0 left-0 -z-10 book-bar"
-              style={{ width: `${lvl.widthPct * 100}%` }}
-            />
-            <span className="text-text-body opacity-80">{lvl.size.toLocaleString()}</span>
-            <span className="text-accent">{lvl.price.toFixed(2)}</span>
-          </li>
-        ))}
-      </ul>
     </section>
   )
 }
