@@ -89,11 +89,10 @@ export const projects: Project[] = [
   {
     id: 'stralane',
     title: 'Stralane',
-    description: 'Research platform for retail investors. In beta and changing quickly.',
+    description: 'Research platform for retail investors.',
     date: '2026-04',
     tag: 'venture',
     image: '/stralane-screenshot.png',
-    tech: ['In Development'],
     link: { url: 'https://stralane.com', label: 'Visit', external: true },
   },
   {
