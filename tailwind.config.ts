@@ -10,26 +10,30 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          deep: '#0b0d12',
-          base: '#0e1116',
-          elevated: '#141821',
+          deep: '#0b0e13',
+          base: '#0f1218',
+          elevated: '#161a22',
         },
         accent: {
-          DEFAULT: '#5bcf87',
-          glow: 'rgba(91,207,135,0.4)',
-          dim: 'rgba(91,207,135,0.15)',
+          DEFAULT: '#a3acd9',
+          glow: 'rgba(163,172,217,0.35)',
+          dim: 'rgba(163,172,217,0.12)',
         },
         text: {
-          primary: '#ffffff',
-          secondary: '#e0e0e0',
-          body: '#888888',
-          subtle: '#666666',
-          muted: '#444444',
+          primary: '#f2f2f2',
+          secondary: '#d6d9e0',
+          body: '#8a92a6',
+          subtle: '#6b7285',
+          muted: '#4a5061',
         },
+        hairline: 'rgba(255,255,255,0.06)',
       },
       fontFamily: {
-        serif: ['var(--font-dm-serif)', 'serif'],
-        mono: ['var(--font-ibm-plex)', 'monospace'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        // Legacy aliases: older pages still use font-serif / font-mono.
+        serif: ['var(--font-display)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-sans)', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

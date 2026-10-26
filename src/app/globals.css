@@ -23,8 +23,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #0e1116;
-  color: #e0e0e0;
+  background-color: #0f1218;
+  color: #d6d9e0;
 }
 
 main {
@@ -52,7 +52,7 @@ main {
 
 .timeline-node.active {
   transform: scale(1.28);
-  box-shadow: 0 0 12px rgba(91, 207, 135, 0.6);
+  box-shadow: 0 0 12px rgba(163, 172, 217, 0.6);
 }
 
 /* Floating cards — each card uses this base animation,
@@ -140,3 +140,17 @@ main {
 }
 
 
+
+/* Landing hero entrance */
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-in {
+  animation: hero-in 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in { animation: none; }
+}

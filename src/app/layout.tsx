@@ -1,24 +1,23 @@
 import type { Metadata } from 'next'
-import { DM_Serif_Display, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, Inter_Tight } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-const dmSerif = DM_Serif_Display({
-  weight: '400',
+const interTight = Inter_Tight({
+  weight: ['600', '700', '800'],
   subsets: ['latin'],
-  variable: '--font-dm-serif',
+  variable: '--font-display',
 })
 
-const ibmPlexMono = IBM_Plex_Mono({
-  weight: ['300', '400', '500'],
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-ibm-plex',
+  variable: '--font-sans',
 })
 
 export const metadata: Metadata = {
-  title: "Chris Lane's Portfolio",
-  description: 'Personal portfolio website',
+  title: 'Christopher Lane',
+  description: 'Diablo Valley College → Santa Clara University. Private Equity at TeedUp.',
 }
 
 export default function RootLayout({
@@ -27,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${dmSerif.variable} ${ibmPlexMono.variable}`}>
-      <body className="font-mono bg-bg-base text-text-secondary">
+    <html lang="en" className={`${interTight.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased bg-bg-base text-text-secondary">
         <Header />
         <main>{children}</main>
         <Footer />
