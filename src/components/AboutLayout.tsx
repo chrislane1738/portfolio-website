@@ -26,20 +26,8 @@ export default function AboutLayout() {
 
   return (
     <div className="max-w-[900px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center gap-12 md:gap-16">
-        {/* Photo — left column */}
-        <div className="md:w-[40%] shrink-0">
-          <div className="relative border border-accent-dim overflow-hidden">
-            <img
-              src="/about-headshot.jpg"
-              alt="Chris Lane"
-              className="w-full h-auto max-h-[400px] md:max-h-[500px] object-cover"
-            />
-          </div>
-        </div>
-
-        {/* Text — right column */}
-        <div className="md:w-[60%]">
+      <div>
+        <div className="max-w-[640px]">
           <span className="font-mono text-[10px] text-accent tracking-[3px] uppercase">
             ABOUT
           </span>
