@@ -66,7 +66,7 @@ export default function ProjectIndex() {
   }
 
   return (
-    <div className="flex flex-col md:flex-1 md:min-h-0">
+    <div className="flex flex-col">
       <div
         role="tablist"
         aria-label="Filter projects"
@@ -91,16 +91,18 @@ export default function ProjectIndex() {
         ))}
       </div>
 
-      <div className="mt-6 md:mt-8 md:flex-1 md:min-h-0 md:grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] md:gap-12">
+      <div className="mt-6 md:mt-8 md:grid md:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] md:gap-12 md:items-start">
         <ul
           onKeyDown={onListKeyDown}
-          className="md:overflow-y-auto md:min-h-0 md:pb-12 border-t border-hairline [scrollbar-width:none] md:[mask-image:linear-gradient(to_bottom,black_calc(100%_-_56px),transparent)]"
+          className="md:h-[520px] md:overflow-y-auto md:py-6 [scrollbar-width:none] md:[mask-image:linear-gradient(to_bottom,transparent,black_28px,black_calc(100%_-_56px),transparent)]"
         >
-          {visible.map(p => {
+          {visible.map((p, i) => {
             const selected = p.id === activeId
             const open = p.id === openId
+            const first = i === 0
+            const last = i === visible.length - 1
             return (
-              <li key={p.id} className="border-b border-hairline">
+              <li key={p.id}>
                 <button
                   ref={el => {
                     if (el) rowRefs.current.set(p.id, el)
@@ -115,16 +117,27 @@ export default function ProjectIndex() {
                     setSelectedId(p.id)
                     setOpenId(o => (o === p.id ? null : p.id))
                   }}
-                  className={`w-full grid grid-cols-[68px_minmax(0,1fr)_auto] md:grid-cols-[84px_minmax(0,1fr)_auto] items-baseline gap-3 md:gap-4 px-2 md:px-3 py-3.5 text-left outline-none transition-colors duration-150 focus-visible:bg-bg-elevated ${
-                    selected ? 'md:bg-bg-elevated' : 'md:hover:bg-bg-elevated'
-                  }`}
+                  className="group relative w-full grid grid-cols-[68px_16px_minmax(0,1fr)_auto] md:grid-cols-[84px_16px_minmax(0,1fr)_auto] items-center gap-3 md:gap-4 px-2 md:px-3 py-3.5 text-left outline-none rounded-lg focus-visible:bg-bg-elevated"
                 >
+                  {/* Timeline line: runs through the dot column, trimmed at the ends */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute left-[96px] md:left-[120px] -translate-x-1/2 w-px bg-white/15 ${first ? 'top-1/2' : 'top-0'} ${last ? 'bottom-1/2' : 'bottom-0'}`}
+                  />
                   <span className="text-[12px] md:text-[13px] text-text-subtle tabular-nums">
                     {formatProjectDate(p.date)}
                   </span>
                   <span
+                    aria-hidden="true"
+                    className={`relative justify-self-center rounded-full transition-all duration-200 ${
+                      selected
+                        ? 'w-3 h-3 bg-accent shadow-[0_0_0_4px_rgba(163,172,217,0.15),0_0_12px_rgba(163,172,217,0.5)]'
+                        : 'w-2 h-2 bg-text-muted group-hover:bg-text-body'
+                    }`}
+                  />
+                  <span
                     className={`md:truncate text-[15px] transition-colors duration-150 ${
-                      selected ? 'md:text-text-primary text-text-secondary' : 'text-text-secondary'
+                      selected ? 'text-text-primary' : 'text-text-secondary group-hover:text-text-primary'
                     }`}
                   >
                     {p.title}
@@ -134,7 +147,10 @@ export default function ProjectIndex() {
                   </span>
                 </button>
                 {open && (
-                  <div className="md:hidden px-2 pt-2 pb-8 detail-in">
+                  <div className="md:hidden relative pl-[104px] pr-2 pt-1 pb-8 detail-in">
+                    {!last && (
+                      <span aria-hidden="true" className="absolute left-[96px] -translate-x-1/2 top-0 bottom-0 w-px bg-white/15" />
+                    )}
                     <ProjectDetail project={p} />
                   </div>
                 )}
@@ -146,7 +162,7 @@ export default function ProjectIndex() {
           )}
         </ul>
 
-        <aside className="hidden md:block md:overflow-y-auto md:min-h-0 [scrollbar-width:none]" aria-live="polite">
+        <aside className="hidden md:block md:pt-6" aria-live="polite">
           {active && (
             <div key={active.id} className="detail-in">
               <ProjectDetail project={active} />

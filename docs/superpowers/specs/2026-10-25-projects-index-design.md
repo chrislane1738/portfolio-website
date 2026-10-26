@@ -9,10 +9,10 @@ Replace the scroll-heavy `/projects` timeline with a compact, dated, tagged inde
 
 ## Layout
 
-**Desktop (md+):** fits one viewport under the fixed header.
+**Desktop (md+):** normal page flow; only the timeline box scrolls.
 
 - Header: small `Projects` heading, then tag filter chips: `All · Work · Muse · Venture · Tool · Club`, each with a count. Clicking filters the list.
-- Left (~55%): list, newest first, scrolls internally. Row = `Mon YYYY` · title · tag label. Selected row gets subtle bg tint.
+- Left (~55%): vertical timeline, newest first, in a 520px box that scrolls internally (top/bottom fade). Row = `Mon YYYY` · dot on a vertical line · title · tag label. Hovered/selected dot grows and turns accent. (Revised 2026-10-25: timeline instead of plain list.)
 - Right (~45%): detail for hovered/selected item: image (if any), title, `date · tag` (+ `Internal · TEEDUP` for work), description, tech list, link (if any). Content crossfades on change.
 - First visible item selected on load and after filter change.
 - Keyboard: ↑/↓ move selection, Enter opens link.
