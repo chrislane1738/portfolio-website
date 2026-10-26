@@ -59,8 +59,7 @@ export default function AboutLayout() {
           >
             <h2 className="font-serif text-[18px] text-white mb-3">Building</h2>
             <p className="font-mono text-[13px] text-text-body leading-[1.8]">
-              Currently building Stralane, an investing platform for retail investors
-              in a developing beta. Every tool on this site started as a problem I
+              I built Stralane, a research platform for retail investors. Every tool on this site started as a problem I
               wanted to solve. The best way to learn is to ship something real.
             </p>
           </div>
