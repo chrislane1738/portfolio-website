@@ -1,47 +1,127 @@
+export type ProjectTag = 'work' | 'muse' | 'venture' | 'tool' | 'club'
+
 export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  year: string;
-  visibility: 'public' | 'private';
-  image?: string;
-  tech?: string[];
-  favorite?: boolean;
-  link?: {
-    url: string;
-    label: string;
-    external: boolean;
-  };
+  id: string
+  title: string
+  description: string
+  /** 'YYYY-MM' */
+  date: string
+  tag: ProjectTag
+  /** Shown as "Internal · <org>" on work items. */
+  org?: string
+  image?: string
+  tech?: string[]
+  link?: { url: string; label: string; external: boolean }
 }
 
+// Order within a month is preserved; the page sorts newest month first.
 export const projects: Project[] = [
   {
-    id: 'compound-interest-calculator',
-    title: 'Compound Interest Calculator',
-    description: 'Interactive tool for visualizing compound growth with configurable monthly contributions and compounding frequencies. My first project. A classic for every finance student.',
-    year: 'Feb 2026',
-    visibility: 'public',
-    image: '/calculator-preview.png',
-    tech: ['Next.js', 'Chart.js', 'TypeScript'],
-    favorite: true,
-    link: { url: '/calculator', label: 'Try it', external: false },
+    id: 'pokemon-stock-checker',
+    title: 'Pokemon Card Stock Checker',
+    description: 'Watches retail stores and free Discord servers for Pokemon cards in stock at MSRP.',
+    date: '2026-10',
+    tag: 'muse',
+    tech: ['Muse'],
   },
   {
-    id: 'graham-screener',
-    title: 'Graham Intrinsic Value Screener',
-    description: 'Stock screening tool implementing Benjamin Graham\'s value investing methodology with real-time market data.',
-    year: 'Feb 2026',
-    visibility: 'public',
-    image: '/benjamin-graham.jpg',
-    tech: ['Next.js', 'yahoo-finance2', 'TypeScript'],
-    link: { url: '/graham-screener', label: 'Try it', external: false },
+    id: 'daily-technicals',
+    title: 'Daily Technicals',
+    description: 'A bigger version of IB Daily Question with far more depth. Built and hosted on Muse.',
+    date: '2026-09',
+    tag: 'muse',
+    tech: ['Muse'],
+  },
+  {
+    id: 'ib-daily-question',
+    title: 'IB Daily Question',
+    description: 'Sends me one investment banking technical question a day to keep my fundamentals sharp.',
+    date: '2026-07',
+    tag: 'tool',
+    image: '/ib-daily-question.png',
+    tech: ['Telegram Bot', 'Finance'],
+  },
+  {
+    id: 'populate-financials',
+    title: 'Populate Financials',
+    description: "Reads a new deal's CIM or financials and fills the historicals into our LBO model on SharePoint. Cuts about 20 minutes of manual entry down to 2.",
+    date: '2026-07',
+    tag: 'work',
+    org: 'TeedUp',
+  },
+  {
+    id: 'equity-research-agents',
+    title: 'Public Equity Research Agent Team',
+    description: 'Open-source team of AI agents that researches a US stock end to end. One agent pulls the data and another checks it against SEC filings. Five more then cover DCF, comps, catalysts, moat, and technicals before it writes the final report.',
+    date: '2026-06',
+    tag: 'tool',
+    image: '/equity-research-agents.png',
+    tech: ['Claude Code', 'AI Agents', 'Equity Research'],
+    link: { url: 'https://github.com/chrislane1738/public-equity-research-team', label: 'View on GitHub', external: true },
+  },
+  {
+    id: 'portco-reporting',
+    title: 'Portco Reporting Dashboard',
+    description: 'Tracks transactions, financials, and fund reporting across our portfolio companies.',
+    date: '2026-06',
+    tag: 'work',
+    org: 'TeedUp',
+  },
+  {
+    id: 'trading-bot',
+    title: 'Trading Bot',
+    description: "Backtesting dashboard for trading strategies. Strategies are written in YAML and tested walk-forward across market regimes. It's private, but I'm happy to walk through it.",
+    date: '2026-05',
+    tag: 'tool',
+    image: '/trading-bot.png',
+    tech: ['Python', 'Backtesting', 'YAML'],
+  },
+  {
+    id: 'pe-curriculum',
+    title: 'PE Curriculum',
+    description: 'Private equity course with 12 modules, 70 lessons, and practice exercises. I built it for myself with a group of research agents, then made it public.',
+    date: '2026-05',
+    tag: 'club',
+    image: '/pe-curriculum.png',
+    tech: ['Next.js', 'AI Agents', 'TypeScript'],
+    link: { url: 'https://pe-curriculum.vercel.app/', label: 'Try it', external: true },
+  },
+  {
+    id: 'stralane',
+    title: 'Stralane',
+    description: 'Research platform for retail investors. In beta and changing quickly.',
+    date: '2026-04',
+    tag: 'venture',
+    image: '/stralane-screenshot.png',
+    tech: ['In Development'],
+    link: { url: 'https://stralane.com', label: 'Visit', external: true },
+  },
+  {
+    id: 'delta-fightwear',
+    title: 'Delta Fightwear',
+    description: 'Combat sports apparel brand I ran, from sourcing to the storefront. No longer operating.',
+    date: '2026-04',
+    tag: 'venture',
+    image: '/delta_fightwear.png',
+    tech: ['E-commerce', 'Supply Chain'],
+    link: { url: 'https://deltafightwear.com/', label: 'Visit', external: true },
+  },
+  {
+    id: 'ufc-ml-model',
+    title: 'UFC ML Prediction Model',
+    description: 'Predicts UFC fight outcomes from fighter stats and past results, and sizes bets with the Kelly criterion. Results get posted in the Discord.',
+    date: '2026-04',
+    tag: 'tool',
+    image: '/ufc-ml-model.png',
+    tech: ['Python', 'Machine Learning', 'Streamlit'],
+    link: { url: 'https://discord.gg/yjJfXaZVCm', label: 'Join Discord', external: true },
   },
   {
     id: 'pe-analyzer',
     title: 'P/E Comparative Analysis',
-    description: 'Compare target stock P/E ratios against industry peers with trailing and forward metrics.',
-    year: 'Mar 2026',
-    visibility: 'public',
+    description: "Compares a stock's trailing and forward P/E against its industry peers.",
+    date: '2026-03',
+    tag: 'tool',
     image: '/pe-comparable.png',
     tech: ['Next.js', 'yahoo-finance2', 'Chart.js'],
     link: { url: '/pe-analyzer', label: 'Try it', external: false },
@@ -49,94 +129,41 @@ export const projects: Project[] = [
   {
     id: 'portfolio-builder',
     title: 'Portfolio Builder Dashboard',
-    description: 'Dashboard for constructing and analyzing investment portfolios with performance tracking.',
-    year: 'Mar 2026',
-    visibility: 'public',
+    description: 'Build a portfolio and track how it performs over time.',
+    date: '2026-03',
+    tag: 'tool',
     image: '/Portfolio-builder.png',
     tech: ['Python', 'Streamlit'],
-    favorite: true,
     link: { url: 'https://personalanalytics-juf6xlhx6valr7qpabuupu.streamlit.app/', label: 'View', external: true },
   },
   {
     id: 'vfc-research-dashboard',
     title: 'VFC Research Dashboard',
-    description: 'Research dashboard built for the Viking Fund Club to streamline equity analysis and team collaboration. Originally built for my club, but gave me the inspiration for Stralane.',
-    year: 'Mar 2026',
-    visibility: 'public',
+    description: 'Equity research dashboard for the Viking Fund Club. Building it is what gave me the idea for Stralane.',
+    date: '2026-03',
+    tag: 'club',
     image: '/vfc-card.png',
     tech: ['Python', 'Streamlit'],
-    favorite: true,
     link: { url: 'https://vikingfunddashboard.streamlit.app/', label: 'View', external: true },
   },
   {
-    id: 'delta-fightwear',
-    title: 'Delta Fightwear',
-    description: 'E-commerce brand for combat sports apparel. From supply chain to storefront. No longer in service.',
-    year: 'Apr 2026',
-    visibility: 'public',
-    image: '/delta_fightwear.png',
-    tech: ['E-commerce', 'Supply Chain'],
-    link: { url: 'https://deltafightwear.com/', label: 'Visit', external: true },
+    id: 'graham-screener',
+    title: 'Graham Intrinsic Value Screener',
+    description: "Screens stocks with Benjamin Graham's intrinsic value formula using live market data.",
+    date: '2026-02',
+    tag: 'tool',
+    image: '/benjamin-graham.jpg',
+    tech: ['Next.js', 'yahoo-finance2', 'TypeScript'],
+    link: { url: '/graham-screener', label: 'Try it', external: false },
   },
   {
-    id: 'stralane',
-    title: 'Stralane',
-    description: 'Investing platform for retail investors. Currently in a developing beta with rapid feature updates.',
-    year: 'Apr 2026',
-    visibility: 'private',
-    image: '/stralane-screenshot.png',
-    tech: ['In Development'],
-    favorite: true,
-    link: { url: 'https://stralane.com', label: 'Visit', external: true },
+    id: 'compound-interest-calculator',
+    title: 'Compound Interest Calculator',
+    description: 'Shows how money grows with monthly contributions and different compounding schedules. The first thing I built.',
+    date: '2026-02',
+    tag: 'tool',
+    image: '/calculator-preview.png',
+    tech: ['Next.js', 'Chart.js', 'TypeScript'],
+    link: { url: '/calculator', label: 'Try it', external: false },
   },
-  {
-    id: 'ufc-ml-model',
-    title: 'UFC ML Prediction Model',
-    description: 'Machine learning model for predicting UFC fight outcomes using fighter statistics, historical records, and decision factors. Bet sizing is driven by the Kelly criterion to balance edge and risk. Join the Discord to see how the strategy has been performing.',
-    year: 'Apr 2026',
-    visibility: 'private',
-    image: '/ufc-ml-model.png',
-    tech: ['Python', 'Machine Learning', 'Streamlit'],
-    favorite: true,
-    link: { url: 'https://discord.gg/yjJfXaZVCm', label: 'Join Discord', external: true },
-  },
-  {
-    id: 'trading-bot',
-    title: 'Trading Bot',
-    description: 'A proprietary backtesting dashboard built to evaluate trading strategies. Fit with regime changes and features, walk-forward testing, a strategy builder using YAML, and an eval tab for an idea I have in mind. If you\'re interested, reach out and I can explain more.',
-    year: 'May 2026',
-    visibility: 'private',
-    image: '/trading-bot.png',
-    tech: ['Python', 'Backtesting', 'YAML'],
-  },
-  {
-    id: 'pe-curriculum',
-    title: 'PE Curriculum',
-    description: 'Interactive private equity training platform with 12 modules, 70 lessons, and 5 interactive practice features. Built using over 15 parallelized research agents for comprehensive curriculum generation. Originally built for me, but I might as well make it public.',
-    year: 'May 2026',
-    visibility: 'public',
-    image: '/pe-curriculum.png',
-    tech: ['Next.js', 'AI Agents', 'TypeScript'],
-    link: { url: 'https://pe-curriculum.vercel.app/', label: 'Try it', external: true },
-  },
-  {
-    id: 'equity-research-agents',
-    title: 'Public Equity Research Agent Team',
-    description: 'An open-source team of AI agents for end-to-end public equity research. A managing director agent orchestrates a fundamentals agent that aggregates source data and an auditing agent that checks it against SEC filings for red flags. After a user checkpoint, it dispatches five parallelized agents covering DCF, comps, macro catalysts, moat analysis, and technicals, then synthesizes everything into a full report exported as HTML, memo, or slide deck. Built to turn days of manual research on any US equity into a single run.',
-    year: 'Jun 2026',
-    visibility: 'public',
-    image: '/equity-research-agents.png',
-    tech: ['Claude Code', 'AI Agents', 'Equity Research'],
-    favorite: true,
-    link: { url: 'https://github.com/chrislane1738/public-equity-research-team', label: 'View on GitHub', external: true },
-  },
-  {
-    id: 'ib-daily-question',
-    title: 'IB Daily Question',
-    description: 'A daily IB question sent to me in order to sharpen my fundamentals and knowledge. While I\'m not prepping for IB interviews, it\'s good for my general finance fundamentals. I\'m also considering turning it into an app on iOS to gain the experience, but that is TBD.',
-    year: 'Jul 2026',
-    visibility: 'private',
-    image: '/ib-daily-question.png',
-    tech: ['Telegram Bot', 'Finance', 'iOS (TBD)'],
-  },
-];
+]
