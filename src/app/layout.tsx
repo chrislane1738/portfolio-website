@@ -17,7 +17,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Christopher Lane',
-  description: 'Diablo Valley College → Santa Clara University. Private Equity at TeedUp.',
+  description: 'Diablo Valley College → Santa Clara University. Private Equity at TEEDUP.',
 }
 
 export default function RootLayout({

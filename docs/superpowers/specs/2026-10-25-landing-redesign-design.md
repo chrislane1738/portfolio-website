@@ -15,7 +15,7 @@ Single full-viewport screen. Nothing below it except the footer.
   - Left: `Christopher Lane` — Inter Tight 700, ~88px, tight tracking, `#F2F2F2`.
     Two subtext lines below, Inter 400, ~18px, `#8A92A6`:
     - `Diablo Valley College → Santa Clara University`
-    - `Private Equity at TeedUp`
+    - `Private Equity at TEEDUP`
   - Right: background-removed headshot (`public/headshot.png`) sitting directly on the page, no frame. Bottom fades out via CSS mask gradient. Faint slate-lavender radial glow (~10% opacity) behind the head.
 - **Mobile:** photo on top (~60vw), name and subtext stacked below, left-aligned.
 - **Motion:** single fade-in on load. Respects `prefers-reduced-motion`.

@@ -47,7 +47,7 @@ export const projects: Project[] = [
     description: "Reads a new deal's CIM or financials and fills the historicals into our LBO model on SharePoint. Cuts about 20 minutes of manual entry down to 2.",
     date: '2026-07',
     tag: 'work',
-    org: 'TeedUp',
+    org: 'TEEDUP',
   },
   {
     id: 'equity-research-agents',
@@ -65,7 +65,7 @@ export const projects: Project[] = [
     description: 'Tracks transactions, financials, and fund reporting across our portfolio companies.',
     date: '2026-06',
     tag: 'work',
-    org: 'TeedUp',
+    org: 'TEEDUP',
   },
   {
     id: 'trading-bot',

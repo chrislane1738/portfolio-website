@@ -26,7 +26,7 @@ export default function LandingHero() {
               <span className="whitespace-nowrap">Diablo Valley College →</span>{' '}
               <span className="whitespace-nowrap">Santa Clara University</span>
             </p>
-            <p>Private Equity at TeedUp</p>
+            <p>Private Equity at TEEDUP</p>
           </div>
         </div>
       </div>

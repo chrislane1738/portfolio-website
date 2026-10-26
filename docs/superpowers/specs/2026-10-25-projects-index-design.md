@@ -13,7 +13,7 @@ Replace the scroll-heavy `/projects` timeline with a compact, dated, tagged inde
 
 - Header: small `Projects` heading, then tag filter chips: `All · Work · Muse · Venture · Tool · Club`, each with a count. Clicking filters the list.
 - Left (~55%): list, newest first, scrolls internally. Row = `Mon YYYY` · title · tag label. Selected row gets subtle bg tint.
-- Right (~45%): detail for hovered/selected item: image (if any), title, `date · tag` (+ `Internal · TeedUp` for work), description, tech list, link (if any). Content crossfades on change.
+- Right (~45%): detail for hovered/selected item: image (if any), title, `date · tag` (+ `Internal · TEEDUP` for work), description, tech list, link (if any). Content crossfades on change.
 - First visible item selected on load and after filter change.
 - Keyboard: ↑/↓ move selection, Enter opens link.
 - Selection mirrored in URL as `?p=<id>` (replaceState); valid `?p` on load selects that item.
@@ -28,7 +28,7 @@ interface Project {
   id: string; title: string; description: string;
   date: string;        // 'YYYY-MM', sort key
   tag: ProjectTag;
-  org?: string;        // e.g. 'TeedUp'
+  org?: string;        // e.g. 'TEEDUP'
   image?: string; tech?: string[];
   link?: { url: string; label: string; external: boolean };
 }
